@@ -1,0 +1,11 @@
+sudo: false
+language: rust
+git:
+    submodules: false
+rust:
+- nightly
+- beta
+- stable
+matrix:
+  allow_failures:
+  - rust: nightly
