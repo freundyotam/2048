@@ -31,8 +31,6 @@ fn main(){
     game.new_tile();
     println!("{:?}\n{:?}\n{:?}\n{:?}\n\n", game.get_state()[0], game.get_state()[1], game.get_state()[2], game.get_state()[3]);
 
-    game.check_if_lost();
-
-    println!("{:?}\n{:?}\n{:?}\n{:?}\n\n", game.get_state()[0], game.get_state()[1], game.get_state()[2], game.get_state()[3]);
+    
 
 }

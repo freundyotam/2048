@@ -61,7 +61,7 @@ impl Game {
         self.status = GameStatus::Ongoing;
     }
     pub fn check_if_lost(&mut self) {
-        let mut copy = self.clone();
+        let mut copy: Game = self.clone();
         if !(copy.right() || copy.left() || copy.up() || copy.down()) {
             self.status = GameStatus::Lost;
         }
@@ -106,9 +106,9 @@ impl Game {
     }
     pub fn new_tile(&mut self) {
         let value = if self.rng.gen::<i32>() % 10 == 1 {
-            2
+            4
         } else {
-            1
+            2
         };
 
         self.data[self
@@ -150,5 +150,21 @@ impl Game {
             state[index/4][index%4] = value.clone();
         }
         state
+    }
+    pub fn get_tiles_sum(&mut self) -> i32{
+        let mut sum = 0;
+        for value in self.data().iter() {
+            sum += value;
+        }
+        sum
+    }
+    pub fn get_max_tile(&mut self) -> i32{
+        let mut max = 0;
+        for value in self.data().iter() {
+            if value > &max {
+                max = value.clone();
+            }
+        }
+        max
     }
 }
