@@ -24,19 +24,19 @@ pub enum GameStatus {
 }
 
 #[derive(Clone)]
-pub struct Game {
+pub struct Game<const N: usize> {
     status: GameStatus,
     already_won: bool,
     score: i32,
-    data: [i32; 16],
+    data: Vec<i32>,
     rng: Xoshiro256Plus,
     dimention: i32,
 }
 
-impl Game {
-    pub fn new() -> Game {
+impl <const N: usize> Game<N> {
+    pub fn new() -> Self {
         let mut rng = Xoshiro256Plus::from_entropy();
-        let mut data = [0; 16];
+        let mut data = vec![0; N * N];
         data[0] = 1;
         data[1] = 1;
         data.shuffle(&mut rng);
@@ -49,8 +49,8 @@ impl Game {
             dimention: 4,
         }
     }
-    pub fn data(&self) -> [i32; 16] {
-        self.data
+    pub fn data(&self) -> &Vec<i32> {
+        &self.data
     }
     pub fn score(&self) -> i32 {
         self.score
@@ -65,7 +65,7 @@ impl Game {
         self.status = GameStatus::Ongoing;
     }
     pub fn check_if_lost(&self) -> bool {
-        let mut copy: Game = self.clone();
+        let mut copy: Game<N> = self.clone();
         !(copy.right() || copy.left() || copy.up() || copy.down())
     }
 
@@ -73,7 +73,7 @@ impl Game {
         let mut mutated = false;
         let mut score = 0;
         let mut won = false;
-        self.data.chunks_mut(4).for_each(|row| {
+        self.data.chunks_mut(N).for_each(|row| {
             let (new_row, new_score) = match dir {
                 Direction::Right => algorithm::slide_right(row),
                 Direction::Left => algorithm::slide_left(row),
@@ -83,7 +83,7 @@ impl Game {
                 won = true;
             }
             score += new_score;
-            for i in 0..4 {
+            for i in 0..N {
                 if row[i] != new_row[i] {
                     row[i] = new_row[i];
                     mutated = true;
@@ -98,13 +98,13 @@ impl Game {
         mutated
     }
     fn vertical(&mut self, dir: Direction) -> bool {
-        algorithm::transpose(&mut self.data);
+        algorithm::transpose::<N>(&mut self.data);
         let mutated = match dir {
             Direction::Up => self.left(),
             Direction::Down => self.right(),
             _ => false,
         };
-        algorithm::transpose(&mut self.data);
+        algorithm::transpose::<N>(&mut self.data);
         mutated
     }
     pub fn new_tile_xy(&mut self, x: i32, y :i32) {

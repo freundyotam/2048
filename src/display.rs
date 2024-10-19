@@ -42,10 +42,10 @@ where
         .queue(crossterm::cursor::MoveTo(1, 1))
 }
 
-pub fn display_game<'a, W>(
+pub fn display_game<'a, W, const N: usize>(
     out: &'a mut W,
     board: &board::Board,
-    game: &game::Game,
+    game: &game::Game<N>,
 ) -> Result<&'a mut W, std::io::Error>
 where
     W: Write,
@@ -53,10 +53,10 @@ where
     header(clear(out)?, game.score())?;
     let status = game.status();
     match status {
-        GameStatus::Ongoing => board.print(game.data(), out),
-        GameStatus::Lost => board.print_lost(game.data(), out),
-        GameStatus::Interrupted => board.print_inactive(game.data(), out),
-        GameStatus::Won => board.print_won(game.data(), out),
+        GameStatus::Ongoing => board.print::<W, N>(game.data(), out),
+        GameStatus::Lost => board.print_lost::<W, N>(game.data(), out),
+        GameStatus::Interrupted => board.print_inactive::<W, N>(game.data(), out),
+        GameStatus::Won => board.print_won::<W, N>(game.data(), out),
     };
     footer(out, status)?;
     Ok(out)

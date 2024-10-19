@@ -4,7 +4,7 @@ use strum::IntoEnumIterator;
 use std::f64;
 
 
-pub fn expectimax(state: &Game, depth: usize) -> (f64, Option<Direction>) {
+pub fn expectimax<const N: usize>(state: &Game<N>, depth: usize) -> (f64, Option<Direction>) {
     if depth == 0 || state.check_if_lost() {
         return (utility(state), None);
     }
@@ -34,6 +34,6 @@ pub fn expectimax(state: &Game, depth: usize) -> (f64, Option<Direction>) {
 }
 
 
-pub fn utility(state: &Game) -> f64 {
+pub fn utility<const N: usize>(state: &Game<N>) -> f64 {
     state.get_max_tile() as f64
 }

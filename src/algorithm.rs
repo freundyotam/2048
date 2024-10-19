@@ -67,7 +67,7 @@ mod slide_test {
 fn merge_backward(slice: &mut [i32]) -> i32 {
     if slice[0] == slice[1] && slice[1] != 0 {
         slice[0] = 0;
-        slice[1] += 1;
+        slice[1] += 2;
         2i32.pow(slice[1] as u32)
     } else {
         0
@@ -102,10 +102,10 @@ pub fn slide_left(data: &[i32]) -> (Vec<i32>, i32) {
     (data.iter().rev().copied().collect::<Vec<_>>(), score)
 }
 
-pub fn transpose(data: &mut [i32; 16]) {
-    for i in 0..4 {
-        for j in i..4 {
-            data.swap(i + 4 * j, j + 4 * i);
+pub fn transpose<const N: usize>(data: &mut [i32]) {
+    for i in 0..N {
+        for j in i..N {
+            data.swap(i + N * j, j + N * i);
         }
     }
 }

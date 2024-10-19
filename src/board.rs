@@ -1,4 +1,4 @@
-use std::borrow::Cow;
+use std::{borrow::Cow, usize};
 
 use matrix_display::*;
 use rand::{Rng, SeedableRng};
@@ -21,17 +21,17 @@ impl Board {
             rng: Xoshiro256Plus::from_entropy(),
         }
     }
-    pub fn print<W>(&self, data: [i32; 16], out: &mut W)
+    pub fn print<W, const N : usize>(&self, data: &Vec<i32>, out: &mut W)
     where
         W: ::std::io::Write,
     {
         let mut matrix = matrix::Matrix::new(
-            4,
+            N,
             data.into_iter()
                 .map(|i| {
                     (
-                        2i32.pow(i as u32),
-                        *self.colour_theme.get(i as usize).unwrap() as u8,
+                        2i32.pow(*i as u32),
+                        *self.colour_theme.get(*i as usize).unwrap() as u8,
                     )
                 })
                 .map(|(x, col)| {
@@ -54,7 +54,7 @@ impl Board {
         let display = MatrixDisplay::new(&FORMAT, &mut matrix);
         display.print(out, &style::BordersStyle::Heavy);
     }
-    pub fn print_inactive<W>(&self, data: [i32; 16], out: &mut W)
+    pub fn print_inactive<W, const N : usize>(&self, data: &Vec<i32>, out: &mut W)
     where
         W: ::std::io::Write,
     {
@@ -62,9 +62,9 @@ impl Board {
         grey_scale.colour_theme = [
             0, 255, 251, 248, 246, 244, 242, 241, 240, 239, 238, 237, 236, 235, 234, 233, 232,
         ];
-        grey_scale.print(data, out);
+        grey_scale.print::<W, N>(data, out);
     }
-    pub fn print_lost<W>(&self, data: [i32; 16], out: &mut W)
+    pub fn print_lost<W, const N : usize>(&self, data: &Vec<i32>, out: &mut W)
     where
         W: ::std::io::Write,
     {
@@ -72,9 +72,9 @@ impl Board {
         red_scale.colour_theme = [
             0, 90, 126, 162, 198, 197, 161, 125, 89, 53, 17, 196, 160, 124, 88, 52, 16,
         ];
-        red_scale.print(data, out);
+        red_scale.print::<W, N>(data, out);
     }
-    pub fn print_won<W>(&self, data: [i32; 16], out: &mut W)
+    pub fn print_won<W, const N : usize>(&self, data: &Vec<i32>, out: &mut W)
     where
         W: ::std::io::Write,
     {
@@ -84,6 +84,6 @@ impl Board {
             .for_each(|f| *f = fireworks.rng.gen_range(1..256));
         fw[0] = 0;
         fireworks.colour_theme[..].clone_from_slice(&fw[..]);
-        fireworks.print(data, out);
+        fireworks.print::<W, N>(data, out);
     }
 }
