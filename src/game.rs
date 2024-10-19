@@ -2,6 +2,7 @@ use super::algorithm;
 use crossterm::event::KeyCode;
 use matrix_display::matrix::position;
 use strum_macros::EnumIter;
+
 use rand::{
     prelude::{IteratorRandom, SliceRandom},
     Rng, SeedableRng,
@@ -118,13 +119,13 @@ impl Game {
         self.data[(x * self.dimention + y) as usize] = value;
     }
     pub fn new_tile(&mut self, position :usize) {
-        let value = if self.rng.gen::<i32>() % 10 == 1 {
-            4
-        } else {
-            2
-        };
-
-        self.data[position] = value;
+        // let value = if self.rng.gen::<i32>() % 10 == 1 {
+        //     4
+        // } else {
+        //     2
+        // };
+        // TODO for now we will only add 2 on tiles, later also do 4s
+        self.data[position] = 2;
     }
 
     pub fn right(&mut self) -> bool {
@@ -140,7 +141,7 @@ impl Game {
         self.vertical(Direction::Down)
     }
 
-    pub fn movement(&mut self, direction: Direction) -> bool {
+    pub fn movement(&mut self, direction: &Direction) -> bool {
         match direction {
             Direction::Up => self.up(),
             Direction::Left => self.left(),
@@ -157,14 +158,14 @@ impl Game {
         }
         state
     }
-    pub fn get_tiles_sum(&mut self) -> i32{
+    pub fn get_tiles_sum(&self) -> i32{
         let mut sum = 0;
         for value in self.data().iter() {
             sum += value;
         }
         sum
     }
-    pub fn get_max_tile(&mut self) -> i32{
+    pub fn get_max_tile(&self) -> i32{
         let mut max = 0;
         for value in self.data().iter() {
             if value > &max {
@@ -182,5 +183,10 @@ impl Game {
             }
         }
         empty_tiles
+    }
+    
+    pub fn new_random_tile(&mut self) {
+        let empty_tiles = self.get_empty_tiles();
+        self.new_tile(*empty_tiles.choose(&mut rand::thread_rng()).unwrap() as usize);
     }
 }
