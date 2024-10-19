@@ -1,6 +1,4 @@
 use super::algorithm;
-use crossterm::event::KeyCode;
-use matrix_display::matrix::position;
 use strum_macros::EnumIter;
 
 use rand::{

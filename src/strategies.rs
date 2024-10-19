@@ -35,5 +35,5 @@ pub fn expectimax(state: &Game, depth: usize) -> (f64, Option<Direction>) {
 
 
 pub fn utility(state: &Game) -> f64 {
-   (state.get_tiles_sum() as f64) * 0.0  + (state.get_max_tile() as f64) * 1.0
+    state.get_max_tile() as f64
 }
