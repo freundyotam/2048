@@ -1,19 +1,22 @@
 use super::algorithm;
 use crossterm::event::KeyCode;
+use matrix_display::matrix::position;
+use strum_macros::EnumIter;
 use rand::{
     prelude::{IteratorRandom, SliceRandom},
     Rng, SeedableRng,
 };
 use rand_xoshiro::Xoshiro256Plus;
 
-enum Direction {
+#[derive(Clone, EnumIter)]
+pub enum Direction {
     Up,
     Down,
     Left,
     Right,
 }
 
-#[derive(Clone, PartialEq)]
+#[derive(Clone, PartialEq, EnumIter)]
 pub enum GameStatus {
     Ongoing,
     Won,
@@ -28,6 +31,7 @@ pub struct Game {
     score: i32,
     data: [i32; 16],
     rng: Xoshiro256Plus,
+    dimention: i32,
 }
 
 impl Game {
@@ -43,6 +47,7 @@ impl Game {
             score: 0,
             data,
             rng,
+            dimention: 4,
         }
     }
     pub fn data(&self) -> [i32; 16] {
@@ -60,12 +65,11 @@ impl Game {
     pub fn go_on(&mut self) {
         self.status = GameStatus::Ongoing;
     }
-    pub fn check_if_lost(&mut self) {
+    pub fn check_if_lost(&self) -> bool {
         let mut copy: Game = self.clone();
-        if !(copy.right() || copy.left() || copy.up() || copy.down()) {
-            self.status = GameStatus::Lost;
-        }
+        !(copy.right() || copy.left() || copy.up() || copy.down())
     }
+
     fn horizontal(&mut self, dir: Direction) -> bool {
         let mut mutated = false;
         let mut score = 0;
@@ -104,21 +108,23 @@ impl Game {
         algorithm::transpose(&mut self.data);
         mutated
     }
-    pub fn new_tile(&mut self) {
+    pub fn new_tile_xy(&mut self, x: i32, y :i32) {
         let value = if self.rng.gen::<i32>() % 10 == 1 {
             4
         } else {
             2
         };
 
-        self.data[self
-            .data
-            .iter()
-            .enumerate()
-            .filter(|&(_, x)| *x == 0)
-            .map(|(i, _)| i)
-            .choose(&mut self.rng)
-            .unwrap()] = value;
+        self.data[(x * self.dimention + y) as usize] = value;
+    }
+    pub fn new_tile(&mut self, position :usize) {
+        let value = if self.rng.gen::<i32>() % 10 == 1 {
+            4
+        } else {
+            2
+        };
+
+        self.data[position] = value;
     }
 
     pub fn right(&mut self) -> bool {
@@ -134,12 +140,12 @@ impl Game {
         self.vertical(Direction::Down)
     }
 
-    pub fn movement(&mut self, key: KeyCode) -> bool {
-        match key {
-            KeyCode::Up | KeyCode::Char('k') => self.up(),
-            KeyCode::Left | KeyCode::Char('h') => self.left(),
-            KeyCode::Right | KeyCode::Char('l') => self.right(),
-            KeyCode::Down | KeyCode::Char('j') => self.down(),
+    pub fn movement(&mut self, direction: Direction) -> bool {
+        match direction {
+            Direction::Up => self.up(),
+            Direction::Left => self.left(),
+            Direction::Right => self.right(),
+            Direction::Down => self.down(),
             _ => false,
         }
     }
@@ -166,5 +172,15 @@ impl Game {
             }
         }
         max
+    }
+    
+    pub fn get_empty_tiles(&self) -> Vec<u32> {
+        let mut empty_tiles: Vec<u32> = Vec::new();
+        for (index, &value) in self.data.iter().enumerate() {
+            if value == 0 {
+                empty_tiles.push(index as u32);
+            }
+        }
+        empty_tiles
     }
 }
