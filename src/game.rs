@@ -15,7 +15,7 @@ pub enum Direction {
     Right,
 }
 
-#[derive(Clone, PartialEq, EnumIter)]
+#[derive(Clone, PartialEq, EnumIter, Eq, Hash)]
 pub enum GameStatus {
     Ongoing,
     Won,
@@ -23,13 +23,12 @@ pub enum GameStatus {
     Interrupted,
 }
 
-#[derive(Clone)]
+#[derive(Clone, Eq, Hash, PartialEq)]
 pub struct Game<const N: usize> {
     status: GameStatus,
     already_won: bool,
     score: i32,
     data: Vec<i32>,
-    rng: Xoshiro256Plus,
     dimention: i32,
 }
 
@@ -45,7 +44,6 @@ impl <const N: usize> Game<N> {
             already_won: false,
             score: 0,
             data,
-            rng,
             dimention: 4,
         }
     }
@@ -108,22 +106,10 @@ impl <const N: usize> Game<N> {
         mutated
     }
     pub fn new_tile_xy(&mut self, x: i32, y :i32) {
-        let value = if self.rng.gen::<i32>() % 10 == 1 {
-            4
-        } else {
-            2
-        };
-
-        self.data[(x * self.dimention + y) as usize] = value;
+        self.data[(x * self.dimention + y) as usize] = 2;
     }
-    pub fn new_tile(&mut self, position :usize) {
-        // let value = if self.rng.gen::<i32>() % 10 == 1 {
-        //     4
-        // } else {
-        //     2
-        // };
-        // TODO for now we will only add 2 on tiles, later also do 4s
-        self.data[position] = 2;
+    pub fn new_tile(&mut self, position :usize, value: i32) {
+        self.data[position] = value;
     }
 
     pub fn right(&mut self) -> bool {
@@ -185,6 +171,6 @@ impl <const N: usize> Game<N> {
     
     pub fn new_random_tile(&mut self) {
         let empty_tiles = self.get_empty_tiles();
-        self.new_tile(*empty_tiles.choose(&mut rand::thread_rng()).unwrap() as usize);
+        self.new_tile(*empty_tiles.choose(&mut rand::thread_rng()).unwrap() as usize, *[2,4].choose(&mut rand::thread_rng()).unwrap());
     }
 }

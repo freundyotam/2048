@@ -23,8 +23,9 @@ fn main() -> Result<(), std::io::Error>{
     let mut game: Game<5> = game::Game::new();
 
     display::display_game(&mut stdout, &board, &game)?.flush()?;
+    let mut strategy = strategies::ExpectimaxStrategy::<5>::new();
     loop {
-        let (_best_score, best_move) = strategies::expectimax(&game, 3);
+        let (_best_score, best_move) = strategy.expectimax(&game, 3);
         game.movement(&best_move.unwrap());
         game.new_random_tile();
         display::display_game(&mut stdout, &board, &game)?.flush()?;
