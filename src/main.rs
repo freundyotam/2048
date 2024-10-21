@@ -20,10 +20,11 @@ fn main() -> Result<(), std::io::Error>{
     let mut stdout = BufWriter::new(stdout_raw.lock());
     crossterm::terminal::enable_raw_mode()?;
     let board = board::Board::new();
-    let mut game: Game<6> = game::Game::new();
+    const BOARD_DIMISION: usize = 4;
+    let mut game: Game<BOARD_DIMISION> = game::Game::new();
 
     display::display_game(&mut stdout, &board, &game)?.flush()?;
-    let mut strategy = ExpectimaxStrategy::<6>::new(5);
+    let mut strategy = ExpectimaxStrategy::<BOARD_DIMISION>::new(3);
     loop {
         let best_move = strategy.calculate_next_move(&game);
         game.movement(&best_move.unwrap());
