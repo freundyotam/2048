@@ -25,7 +25,7 @@ impl<const N: usize> ExpectimaxStrategy<N> {
     }
     fn expectimax(&mut self, state: &Game<N>, depth: usize) -> (f64, Option<Direction>) {
         if depth == 0 || state.check_if_lost() {
-            return (self.utility(state), None);
+            return (self.utility_average(state), None);
         }
 
         let mut best_score: f64 = 0.0;
@@ -61,7 +61,13 @@ impl<const N: usize> ExpectimaxStrategy<N> {
     }
 
 
-    pub fn utility(&self, state: &Game<N>) -> f64 {
+    pub fn utility_max_tile(&self, state: &Game<N>) -> f64 {
         state.get_max_tile() as f64
     }
+    pub fn utility_average(&self, state: &Game<N>) -> f64 {
+        let tiles_sum = state.get_tiles_sum() as f64;
+        let non_empty_tiles = state.get_empty_tiles().len() as f64;
+        tiles_sum / (non_empty_tiles * non_empty_tiles)
+    }
+    
 }
