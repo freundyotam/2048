@@ -87,7 +87,7 @@ h1.title {
   font-size: 25px;
   line-height: 25px;
   font-weight: bold;
-  color: rgba(119, 110, 101, 0.9);
+  color: rgba(119, 110, 101, 0);
   z-index: 100;
   -webkit-animation: move-up 600ms ease-in;
   -moz-animation: move-up 600ms ease-in;
@@ -294,7 +294,7 @@ hr {
   position: absolute;
   width: 79px;
   height: 79px;
-  border: 1px solid rgba(0, 0, 0, 0.55);
+  border: 0px solid rgba(0, 0, 0, 0.55);
   background: rgba(238, 228, 218, 0.15);
   -webkit-transform-origin: 50% 50%;
   -moz-transform-origin: 50% 50%;
