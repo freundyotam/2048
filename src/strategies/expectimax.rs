@@ -66,8 +66,16 @@ impl<const N: usize> ExpectimaxStrategy<N> {
     }
     pub fn utility_average(&self, state: &Game<N>) -> f64 {
         let tiles_sum = state.get_tiles_sum() as f64;
-        let non_empty_tiles = state.get_empty_tiles().len() as f64;
+        let non_empty_tiles = (N*N - state.get_empty_tiles().len()) as f64;
         tiles_sum / (non_empty_tiles * non_empty_tiles)
+    }
+    pub fn utility_num_empty_tiles(&self, state: &Game<N>) -> f64 {
+        let empty_tiles = state.get_empty_tiles().len() as f64;
+        empty_tiles
+    }
+    pub fn utility_sum_tiles(&self, state: &Game<N>) -> f64 {
+        let tiles_sum = state.get_tiles_sum() as f64;
+        tiles_sum
     }
     
 }
