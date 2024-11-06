@@ -25,12 +25,17 @@ impl<const N: usize> ExpectimaxStrategy<N> {
     }
     fn expectimax(&mut self, state: &Game<N>, depth: usize) -> (f64, Option<Direction>) {
         if depth == 0 || state.check_if_lost() {
-            return (self.utility_average(state), None);
+            return (self.utility_max_tile(state), None);
         }
 
         let mut best_score: f64 = 0.0;
         let mut best_move = None;
+         
         for step in Direction::iter() {
+            match step{
+                Direction::Down => {continue;}
+                _ => {
+              
             let mut state_after_my_turn = state.clone();
             if !state_after_my_turn.movement(&step){ // Staying in the same state is not a valid move
                 continue;
@@ -57,7 +62,11 @@ impl<const N: usize> ExpectimaxStrategy<N> {
                 }
             }
         }
+        }
+        }
         (best_score, best_move)
+    
+
     }
 
 
@@ -76,6 +85,11 @@ impl<const N: usize> ExpectimaxStrategy<N> {
     pub fn utility_sum_tiles(&self, state: &Game<N>) -> f64 {
         let tiles_sum = state.get_tiles_sum() as f64;
         tiles_sum
+    }
+    pub fn utility_max_tile_average(&self, state: &Game<N>) -> f64 {
+        let max_tile = state.get_max_tile() as f64;
+        let non_empty_tiles = (N*N - state.get_empty_tiles().len()) as f64;
+        max_tile / (non_empty_tiles * non_empty_tiles)
     }
     
 }
