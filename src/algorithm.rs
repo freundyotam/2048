@@ -67,7 +67,7 @@ mod slide_test {
 fn merge_backward(slice: &mut [i32]) -> i32 {
     if slice[0] == slice[1] && slice[1] != 0 {
         slice[0] = 0;
-        slice[1] += 2;
+        slice[1] += 1;
         2i32.pow(slice[1] as u32)
     } else {
         0

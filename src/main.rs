@@ -7,6 +7,7 @@ mod display;
 mod game;
 mod strategies;
 use crate::strategies::expectimax::ExpectimaxStrategy;
+use core::time;
 use std::io::{stdout, BufWriter, Write};
 use std::thread;
 use std::time::Duration;

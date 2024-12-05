@@ -171,6 +171,6 @@ impl <const N: usize> Game<N> {
     
     pub fn new_random_tile(&mut self) {
         let empty_tiles = self.get_empty_tiles();
-        self.new_tile(*empty_tiles.choose(&mut rand::thread_rng()).unwrap() as usize, *[2,4].choose(&mut rand::thread_rng()).unwrap());
+        self.new_tile(*empty_tiles.choose(&mut rand::thread_rng()).unwrap() as usize, *[1,2].choose(&mut rand::thread_rng()).unwrap());
     }
 }
