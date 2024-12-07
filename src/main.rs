@@ -5,6 +5,7 @@ mod algorithm;
 mod board;
 mod display;
 mod game;
+mod three_d_game;
 mod strategies;
 use crate::strategies::expectimax::ExpectimaxStrategy;
 use core::time;
