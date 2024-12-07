@@ -156,7 +156,7 @@ impl <const N: usize> Game<N> {
                 max = value.clone();
             }
         }
-        max
+        2i32.pow(max as u32)
     }
     
     pub fn get_empty_tiles(&self) -> Vec<u32> {
