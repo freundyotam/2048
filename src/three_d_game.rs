@@ -144,6 +144,21 @@ impl <const N: usize> ThreeDGame<N> {
     
         mutated
     }
+    pub fn print_boards(&self) {
+        println!("Game State ({}x{}x{}):", N, N, N);
+        for k in 0..N {
+            println!("Layer {}:", k + 1); // Print the layer header
+            for j in 0..N {
+                for i in 0..N {
+                    let idx = i + N * (j + N * k);
+                    print!("{} ", self.data[idx]); // Print row elements without extra spaces
+                }
+                println!(); // Move to the next row
+            }
+            println!(); // Separate layers with a blank line
+        }
+    }
+
     
 
     pub fn new_tile_xy(&mut self, x: i32, y :i32, z: i32, value: i32) {
@@ -172,12 +187,14 @@ impl <const N: usize> ThreeDGame<N> {
         self.inward_outward(ThreeDDirection::Outward)
     }
 
-    pub fn movement(&mut self, direction: &Direction) -> bool {
+    pub fn movement(&mut self, direction: &ThreeDDirection) -> bool {
         match direction {
-            Direction::Up => self.up(),
-            Direction::Left => self.left(),
-            Direction::Right => self.right(),
-            Direction::Down => self.down(),
+            ThreeDDirection::Up => self.up(),
+            ThreeDDirection::Left => self.left(),
+            ThreeDDirection::Right => self.right(),
+            ThreeDDirection::Down => self.down(),
+            ThreeDDirection::Inward => self.inward(),
+            ThreeDDirection::Outward => self.outward(),
             _ => false,
         }
     }

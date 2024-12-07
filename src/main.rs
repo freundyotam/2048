@@ -14,6 +14,7 @@ use std::thread;
 use std::time::Duration;
 use game::Game;
 use strategies::strategy::Strategy;
+use three_d_game::ThreeDDirection;
 
 
 
@@ -24,15 +25,16 @@ fn main() -> Result<(), std::io::Error>{
     let board = board::Board::new();
     const BOARD_DIMISION: usize = 4;
     let mut game: Game<BOARD_DIMISION> = game::Game::new();
-
-    display::display_game(&mut stdout, &board, &game)?.flush()?;
-    let mut strategy = ExpectimaxStrategy::<BOARD_DIMISION>::new(3);
-    loop {
-        let best_move = strategy.calculate_next_move(&game);
-        game.movement(&best_move.unwrap());
-        game.new_random_tile();
-        display::display_game(&mut stdout, &board, &game)?.flush()?;
-        thread::sleep(Duration::from_millis(100));
-    }
+    let mut game3d: three_d_game::ThreeDGame<BOARD_DIMISION> = three_d_game::ThreeDGame::new();
+    Ok(())
+    // display::display_game(&mut stdout, &board, &game)?.flush()?;
+    // let mut strategy = ExpectimaxStrategy::<BOARD_DIMISION>::new(3);
+    // loop {
+    //     let best_move = strategy.calculate_next_move(&game);
+    //     game.movement(&best_move.unwrap());
+    //     game.new_random_tile();
+    //     display::display_game(&mut stdout, &board, &game)?.flush()?;
+    //     thread::sleep(Duration::from_millis(100));
+    // }
 
 }
