@@ -156,7 +156,7 @@ impl <const N: usize> Game<N> {
                 max = value.clone();
             }
         }
-        max
+        2i32.pow(max as u32)
     }
     
     pub fn get_empty_tiles(&self) -> Vec<u32> {
@@ -172,5 +172,11 @@ impl <const N: usize> Game<N> {
     pub fn new_random_tile(&mut self) {
         let empty_tiles = self.get_empty_tiles();
         self.new_tile(*empty_tiles.choose(&mut rand::thread_rng()).unwrap() as usize, *[1,2].choose(&mut rand::thread_rng()).unwrap());
+    }
+
+    pub fn get_tile(&self, row: usize, col: usize) -> i32 {
+        let index = N * row + col;
+        let value = self.data[index].clone() as i32;
+        2i32.pow(value as u32)
     }
 }

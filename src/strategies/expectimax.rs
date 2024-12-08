@@ -1,8 +1,12 @@
 use crate::game::Game;
 use crate::game::Direction;
+use rand::seq::SliceRandom;
+use rand::thread_rng;
 use strum::IntoEnumIterator;
 use std::f64;
 use std::collections::HashMap;
+use std::thread;
+use std::time::Duration;
 use itertools::iproduct;
 use crate::strategies::strategy::Strategy;
 
@@ -13,8 +17,11 @@ pub struct ExpectimaxStrategy<const N: usize>{
 impl<const N: usize> Strategy<N> for ExpectimaxStrategy<N> {
     fn calculate_next_move(&mut self, game: &Game<N>) -> Option<Direction> {
         let (_best_score, best_move) = self.expectimax(game, self.depth);
+        // let best_move = self.random_move(game);
+        // thread::sleep(Duration::from_millis(500));
         best_move
     }
+
 }
 impl<const N: usize> ExpectimaxStrategy<N> {
     pub fn new(depth: usize) -> Self {
@@ -25,19 +32,19 @@ impl<const N: usize> ExpectimaxStrategy<N> {
     }
     fn expectimax(&mut self, state: &Game<N>, depth: usize) -> (f64, Option<Direction>) {
         if depth == 0 || state.check_if_lost() {
-            return (self.utility_max_tile(state), None);
+            return (self.utility_max_tile_distance(state), None);
         }
 
         let mut best_score: f64 = 0.0;
         let mut best_move = None;
          
         for step in Direction::iter() {
-            match step{
-                Direction::Down => {continue;}
-                _ => {
+            // match step{
+            //     Direction::Down => {continue;}
+            //     _ => {
               
             let mut state_after_my_turn = state.clone();
-            if !state_after_my_turn.movement(&step){ // Staying in the same state is not a valid move
+            if !state_after_my_turn.movement(&step) { // Staying in the same state is not a valid move
                 continue;
             }
             let mut expected_value: f64 = 0.0;
@@ -61,14 +68,29 @@ impl<const N: usize> ExpectimaxStrategy<N> {
                     best_move = Some(step.clone());
                 }
             }
-        }
-        }
+        // }
+        // }
         }
         (best_score, best_move)
     
 
     }
 
+
+    fn random_move(&mut self, state: &Game<N>) -> Option<Direction> {
+        let mut rng = thread_rng(); // Random number generator
+        let mut directions: Vec<Direction> = Direction::iter().collect();
+        directions.shuffle(&mut rng); // Randomize the order of directions
+    
+        // thread::sleep(Duration::from_millis(500));
+        for direction in directions {
+            let mut state_clone = state.clone();
+            if state_clone.movement(&direction) {
+                return Some(direction); // Return the first valid random move
+            }
+        }
+        None // Return None if no valid move is possible
+    }
 
     pub fn utility_max_tile(&self, state: &Game<N>) -> f64 {
         state.get_max_tile() as f64
@@ -91,5 +113,42 @@ impl<const N: usize> ExpectimaxStrategy<N> {
         let non_empty_tiles = (N*N - state.get_empty_tiles().len()) as f64;
         max_tile / (non_empty_tiles * non_empty_tiles)
     }
+
+    // Utility function to calculate the distance of the max tile from the edges
+    pub fn utility_max_tile_distance(&self, state: &Game<N>) -> f64 {
+        let mut max_value = 0;
+        let mut max_position = (0, 0);
+
+        // Find the position of the maximum tile
+        for row in 0..N {
+            for col in 0..N {
+                let tile_value = state.get_tile(row, col) as i32;
+                if tile_value > max_value {
+                    max_value = tile_value;
+                    max_position = (row, col);
+                }
+            }
+        }
+
+        let (row, col) = max_position;
+
+        // Calculate distances to edges
+        let top_left_side_distance = row + col;
+        let bottom_left_side_distance = (N - 1 - row) + col;
+        let top_right_side_distance = row + (N - 1 - col);
+        let bottom_right_side_distance = (N - 1 - row) + (N - 1 - col);
+
+        // Minimum distance to any edge
+        let min_distance = top_left_side_distance
+            .min(bottom_left_side_distance)
+            .min(top_right_side_distance)
+            .min(bottom_right_side_distance);
+
+        // Inverse the distance to prioritize tiles closer to edges
+        let non_empty_tiles = (N*N - state.get_empty_tiles().len()) as f64;
+        1.0 / (min_distance as f64 + 1.0) * (non_empty_tiles)
+    }
+
+    
     
 }
