@@ -142,11 +142,13 @@ impl<const N: usize> ExpectimaxStrategy<N> {
         let min_distance = top_left_side_distance
             .min(bottom_left_side_distance)
             .min(top_right_side_distance)
-            .min(bottom_right_side_distance);
+            .min(bottom_right_side_distance) as f64;
+
+        // let min_distance = top_right_side_distance as f64;
 
         // Inverse the distance to prioritize tiles closer to edges
         let non_empty_tiles = (N*N - state.get_empty_tiles().len()) as f64;
-        1.0 / (min_distance as f64 + 1.0) * (non_empty_tiles)
+        state.get_max_tile() as f64 / ((min_distance + 1.0) * (non_empty_tiles * non_empty_tiles))
     }
 
     
