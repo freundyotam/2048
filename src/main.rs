@@ -61,7 +61,7 @@ fn main() -> Result<(), std::io::Error> {
             iteration, iterations, max_tile, score
         );
 
-        // thread::sleep(Duration::from_millis(1000));
+        thread::sleep(Duration::from_millis(1000));
     }
 
     // Flush the CSV writer to ensure all data is written

@@ -176,7 +176,7 @@ impl <const N: usize> Game<N> {
 
     pub fn get_tile(&self, row: usize, col: usize) -> i32 {
         let index = N * row + col;
-        let value = self.data[index].clone() as i32;
-        2i32.pow(value as u32)
+        let value = self.data[index].clone() as u32;
+        2i32.pow(value)
     }
 }

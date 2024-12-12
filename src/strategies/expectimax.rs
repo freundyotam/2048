@@ -10,6 +10,30 @@ use std::time::Duration;
 use itertools::iproduct;
 use crate::strategies::strategy::Strategy;
 
+
+// Function to calculate the Manhattan distance between two points
+pub fn manhattan_distance(x1: usize, y1: usize, x2: usize, y2: usize) -> usize {
+    (x1 as isize - x2 as isize).abs() as usize + (y1 as isize - y2 as isize).abs() as usize
+}
+
+pub fn distance_to_corner(row: usize, col: usize, n: usize) -> f64 {
+
+    // let top_left_distance = manhattan_distance(row, col, 0, 0);
+    let top_right_distance = manhattan_distance(row, col, 0, n - 1);
+    // let bottom_left_distance = manhattan_distance(row, col, n - 1, 0);
+    // let bottom_right_distance = manhattan_distance(row, col, 0, 0);
+
+    // let distance = top_left_distance
+    // .min(top_right_distance)
+    // .min(bottom_left_distance)
+    // .min(bottom_right_distance);
+
+    let distance = top_right_distance;
+    // Return inverse of the distance to prioritize tiles closer to the corner
+    distance as f64
+}
+
+
 pub struct ExpectimaxStrategy<const N: usize>{
     pub cache: HashMap<Game<N>, (f64, Option<Direction>)>,
     pub depth: usize,
@@ -32,16 +56,21 @@ impl<const N: usize> ExpectimaxStrategy<N> {
     }
     fn expectimax(&mut self, state: &Game<N>, depth: usize) -> (f64, Option<Direction>) {
         if depth == 0 || state.check_if_lost() {
-            return (self.utility_max_tile_distance(state), None);
+            return (self.utility_manhattan_distance_to_corner_maxtile_average(state), None);
         }
 
         let mut best_score: f64 = 0.0;
         let mut best_move = None;
          
         for step in Direction::iter() {
-            // match step{
-            //     Direction::Down => {continue;}
-            //     _ => {
+            match step{
+                Direction::Down => {
+                    if !self.can_move_only_down(state) {
+                        continue;
+                    }
+                }
+                _ => {}
+            }
               
             let mut state_after_my_turn = state.clone();
             if !state_after_my_turn.movement(&step) { // Staying in the same state is not a valid move
@@ -68,14 +97,27 @@ impl<const N: usize> ExpectimaxStrategy<N> {
                     best_move = Some(step.clone());
                 }
             }
-        // }
-        // }
-        }
+        } 
         (best_score, best_move)
     
 
     }
 
+    pub fn can_move_only_down(&self, state: &Game<N>) -> bool {
+        let directions: Vec<Direction> = Direction::iter().collect();
+        for direction in directions {
+            match direction {
+                Direction::Down => {continue;}
+                _ => {
+                    let mut state_clone = state.clone();
+                    if state_clone.movement(&direction) {
+                        return false;
+                    }
+                }
+            }
+        }
+        true
+    }
 
     fn random_move(&mut self, state: &Game<N>) -> Option<Direction> {
         let mut rng = thread_rng(); // Random number generator
@@ -114,43 +156,58 @@ impl<const N: usize> ExpectimaxStrategy<N> {
         max_tile / (non_empty_tiles * non_empty_tiles)
     }
 
-    // Utility function to calculate the distance of the max tile from the edges
-    pub fn utility_max_tile_distance(&self, state: &Game<N>) -> f64 {
-        let mut max_value = 0;
-        let mut max_position = (0, 0);
 
-        // Find the position of the maximum tile
+    // Utility function to calculate the distance of the max tile from the edges
+    pub fn utility_manhattan_distance(&self, state: &Game<N>) -> f64 {
+        let mut top_tiles = Vec::new();
+
+        // Gather all tiles with their positions
         for row in 0..N {
             for col in 0..N {
-                let tile_value = state.get_tile(row, col) as i32;
-                if tile_value > max_value {
-                    max_value = tile_value;
-                    max_position = (row, col);
+                let tile_value = state.get_tile(row, col);
+                if tile_value > 0 {
+                    top_tiles.push((tile_value, (row, col)));
                 }
             }
         }
 
-        let (row, col) = max_position;
+        // Sort tiles by value in descending order
+        top_tiles.sort_by(|a, b| b.0.cmp(&a.0));
 
-        // Calculate distances to edges
-        let top_left_side_distance = row + col;
-        let bottom_left_side_distance = (N - 1 - row) + col;
-        let top_right_side_distance = row + (N - 1 - col);
-        let bottom_right_side_distance = (N - 1 - row) + (N - 1 - col);
+        // Take the top 4 tiles (or fewer if not enough tiles exist)
+        let top_positions: Vec<(usize, usize)> = top_tiles.iter().take(4).map(|&(_, pos)| pos).collect();
 
-        // Minimum distance to any edge
-        let min_distance = top_left_side_distance
-            .min(bottom_left_side_distance)
-            .min(top_right_side_distance)
-            .min(bottom_right_side_distance) as f64;
+        // Initialize utility
+        let mut utility = 0.0;
 
-        // let min_distance = top_right_side_distance as f64;
+        // Distance of the first max to the corner (e.g., top-left corner (0, 0))
+        if let Some(&(max_row, max_col)) = top_positions.get(0) {
+            let distance_to_corner = distance_to_corner(max_row, max_col, N);
+            utility += 10000.0 / (distance_to_corner as f64 + 0.1);
+        }
 
-        // Inverse the distance to prioritize tiles closer to edges
-        let non_empty_tiles = (N*N - state.get_empty_tiles().len()) as f64;
-        state.get_max_tile() as f64 / ((min_distance + 1.0) * (non_empty_tiles * non_empty_tiles))
+        // Add distances between consecutive max tiles
+        let max_pairs = 2;
+        let mut count = 0;
+        for pair in top_positions.windows(2) {
+            if let [(row1, col1), (row2, col2)] = pair {
+                let distance = manhattan_distance(*row1, *col1, *row2, *col2);
+                utility += 1.0 / (distance as f64);
+            }
+            count += 1;
+            if count == max_pairs {
+                break;
+            }
+        }
+
+        utility
     }
 
+    pub fn utility_manhattan_distance_to_corner_maxtile_average(&self, state: &Game<N>) -> f64 {
+        let utility1 = self.utility_manhattan_distance(state);
+        let utility2 = self.utility_max_tile_average(state);
+        utility1 * utility2
+    }
     
     
 }
