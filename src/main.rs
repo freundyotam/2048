@@ -6,14 +6,15 @@ mod board;
 mod display;
 mod game;
 mod strategies;
+
 use crate::strategies::expectimax::ExpectimaxStrategy;
 use core::time;
+use std::collections::HashMap;
 use std::io::{stdout, BufWriter, Write};
 use std::thread;
 use std::time::Duration;
 use game::{Direction, Game};
 use strategies::strategy::Strategy;
-
 
 use std::fs::File;
 use crossterm::terminal;
@@ -28,13 +29,18 @@ fn main() -> Result<(), std::io::Error> {
     let mut csv_writer = BufWriter::new(file);
 
     // Write the CSV header
-    writeln!(csv_writer, "Iteration,Game Iterations,Max Tile,Score")?;
+    writeln!(csv_writer, "Iteration,Game Iterations,Max Tile,Score,4,8,16,64,128,256,512,1024,2048,4096")?;
 
     for iteration in 1..=100 {
         let board = board::Board::new();
-        const BOARD_DIMENSION: usize = 4;
+        
+        //Select board dimention
+        const BOARD_DIMENSION: usize = 5;
+
         let mut game: Game<BOARD_DIMENSION> = game::Game::new();
         let mut iterations = 0;
+        let mut first_occurrence: HashMap<i32, usize> = HashMap::new();
+        
         display::display_game(&mut stdout, &board, &game)?.flush()?;
         let mut strategy = ExpectimaxStrategy::<BOARD_DIMENSION>::new(3);
 
@@ -45,6 +51,10 @@ fn main() -> Result<(), std::io::Error> {
                 break;
             }
             game.movement(&best_move.unwrap());
+            let max_tile = game.get_max_tile();
+            if !first_occurrence.contains_key(&max_tile) {
+                first_occurrence.insert(max_tile, iterations);
+            }
             game.new_random_tile();
             display::display_game(&mut stdout, &board, &game)?.flush()?;
         }
@@ -53,7 +63,23 @@ fn main() -> Result<(), std::io::Error> {
         let score = game.score();
 
         // Save the result as a CSV row
-        writeln!(csv_writer, "{},{},{},{}", iteration, iterations, max_tile, score)?;
+        writeln!(csv_writer, "{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}",
+         iteration,
+          iterations,
+           max_tile,
+            score,
+            *first_occurrence.get(&4).unwrap_or(&0),
+            *first_occurrence.get(&8).unwrap_or(&0),
+            *first_occurrence.get(&16).unwrap_or(&0),
+            *first_occurrence.get(&32).unwrap_or(&0),
+            *first_occurrence.get(&64).unwrap_or(&0),
+            *first_occurrence.get(&128).unwrap_or(&0),
+            *first_occurrence.get(&256).unwrap_or(&0),
+            *first_occurrence.get(&512).unwrap_or(&0),
+            *first_occurrence.get(&1024).unwrap_or(&0),
+            *first_occurrence.get(&2048).unwrap_or(&0),
+            *first_occurrence.get(&4096).unwrap_or(&0)
+        )?;
 
         // Print the result for monitoring
         println!(
