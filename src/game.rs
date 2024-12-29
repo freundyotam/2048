@@ -1,5 +1,7 @@
 use super::algorithm;
 use strum_macros::EnumIter;
+use rand::prelude::*;
+use rand::distributions::WeightedIndex;
 
 use rand::{
     prelude::{IteratorRandom, SliceRandom},
@@ -7,7 +9,7 @@ use rand::{
 };
 use rand_xoshiro::Xoshiro256Plus;
 
-#[derive(Clone, EnumIter)]
+#[derive(Clone, EnumIter, Debug, PartialEq)]
 pub enum Direction {
     Up,
     Down,
@@ -65,6 +67,18 @@ impl <const N: usize> Game<N> {
     pub fn check_if_lost(&self) -> bool {
         let mut copy: Game<N> = self.clone();
         !(copy.right() || copy.left() || copy.up() || copy.down())
+    }
+
+    pub fn transpose(&self) -> Self {
+        let mut data = self.data.clone();
+        algorithm::transpose::<N>(&mut data);
+        Game {
+            status: GameStatus::Ongoing,
+            already_won: self.already_won,
+            score: self.score,
+            data,
+            dimention: self.dimention,
+        }
     }
 
     fn horizontal(&mut self, dir: Direction) -> bool {
@@ -149,14 +163,16 @@ impl <const N: usize> Game<N> {
         }
         sum
     }
-    pub fn get_max_tile(&self) -> i32{
+    pub fn get_max_tile(&self) -> (usize, i32){
         let mut max = 0;
-        for value in self.data().iter() {
+        let mut index = 0;
+        for (i, value) in self.data().iter().enumerate() {
             if value > &max {
                 max = value.clone();
+                index = i;
             }
         }
-        2i32.pow(max as u32)
+        (index, 2i32.pow(max as u32))
     }
     
     pub fn get_empty_tiles(&self) -> Vec<u32> {
@@ -171,6 +187,14 @@ impl <const N: usize> Game<N> {
     
     pub fn new_random_tile(&mut self) {
         let empty_tiles = self.get_empty_tiles();
-        self.new_tile(*empty_tiles.choose(&mut rand::thread_rng()).unwrap() as usize, *[1,2].choose(&mut rand::thread_rng()).unwrap());
+        self.new_tile(
+            *empty_tiles.choose(&mut rand::thread_rng()).unwrap() as usize,
+            {
+                let mut rng = rand::thread_rng();
+                let weights = [90, 10];
+                let dist = WeightedIndex::new(&weights).unwrap();
+                [1, 2][dist.sample(&mut rng)]
+            },
+        );
     }
 }

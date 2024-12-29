@@ -25,13 +25,13 @@ fn main() -> Result<(), std::io::Error>{
     let mut game: Game<BOARD_DIMISION> = game::Game::new();
 
     display::display_game(&mut stdout, &board, &game)?.flush()?;
-    let mut strategy = ExpectimaxStrategy::<BOARD_DIMISION>::new(3);
+    let mut strategy = ExpectimaxStrategy::<BOARD_DIMISION>::new(5);
     loop {
         let best_move = strategy.calculate_next_move(&game);
         game.movement(&best_move.unwrap());
         game.new_random_tile();
         display::display_game(&mut stdout, &board, &game)?.flush()?;
-        thread::sleep(Duration::from_millis(100));
+        // thread::sleep(Duration::from_millis(100));
     }
 
 }
