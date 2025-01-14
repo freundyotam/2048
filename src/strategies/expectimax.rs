@@ -14,19 +14,25 @@ use rand::Rng;
 pub struct ExpectimaxStrategy<const N: usize>{
     pub cache: HashMap<Game<N>, (f64, Option<Direction>)>,
     pub depth: usize,
+    pub alpha: f64,
+    pub beta: f64,
+    pub gamma: f64,
 }
 impl<const N: usize> Strategy<N> for ExpectimaxStrategy<N> {
     fn calculate_next_move(&mut self, game: &Game<N>) -> Option<Direction> {
         let (_best_score, best_move) = self.expectimax(game, self.depth);
-        println!("Best move: {:?}", best_move);
         best_move
     }
 }
 impl<const N: usize> ExpectimaxStrategy<N> {
-    pub fn new(depth: usize) -> Self {
+    pub fn new(depth: usize, alpha: f64, beta: f64, gamma: f64) -> Self {
         ExpectimaxStrategy {
             cache: HashMap::<Game<N>, (f64, Option<Direction>)>::new(),
             depth: depth,
+            alpha: alpha,
+            beta: beta,
+            gamma: gamma,
+
         }
     }
     fn expectimax(&mut self, state: &Game<N>, depth: usize) -> (f64, Option<Direction>) {
@@ -34,7 +40,7 @@ impl<const N: usize> ExpectimaxStrategy<N> {
             return (f64::NEG_INFINITY, None);
         }
         if depth == 0 {
-            return (self.utility(state), None);
+            return (self.gamma_utility(state), None);
         }
 
         let mut best_score: f64 = f64::NEG_INFINITY;
@@ -42,19 +48,19 @@ impl<const N: usize> ExpectimaxStrategy<N> {
          
         for step in Direction::iter() {
             let (_, max_tile_value) = state.get_max_tile();
-            if step == Direction::Down && max_tile_value < 2048 {
-                continue;
-            }
+            // if step == Direction::Down && max_tile_value < 2048 {
+            //     continue;
+            // }
 
             let mut state_after_my_turn = state.clone();
-                    if !state_after_my_turn.movement(&step){ // Staying in the same state is not a valid move
-                        continue;
-                    }
-                    let mut expected_value: f64 = 0.0;
-                    let empty_tiles_list = state_after_my_turn.get_empty_tiles();
-                    let empty_list_len = empty_tiles_list.len();
-                    let all_tiles_and_possibilities: Vec<_> = iproduct!(empty_tiles_list.iter(), [1,2].iter()).map(|(a, b)| (*a, *b)).collect();
-                    for (empty_index, tile_value) in all_tiles_and_possibilities {
+            if !state_after_my_turn.movement(&step){ // Staying in the same state is not a valid move
+                continue;
+            }
+            let mut expected_value: f64 = 0.0;
+            let empty_tiles_list = state_after_my_turn.get_empty_tiles();
+            let empty_list_len = empty_tiles_list.len();
+            let all_tiles_and_possibilities: Vec<_> = iproduct!(empty_tiles_list.iter(), [1,2].iter()).map(|(a, b)| (*a, *b)).collect();
+            for (empty_index, tile_value) in all_tiles_and_possibilities {
                 let mut state_after_new_tile = state_after_my_turn.clone();
                 state_after_new_tile.new_tile(empty_index as usize, tile_value);
                 let mut score = 0.0;
@@ -72,6 +78,9 @@ impl<const N: usize> ExpectimaxStrategy<N> {
                 }
             }
         }
+        if best_move == Some(Direction::Down) {
+            // println!("No valid moves");
+        }
         (best_score, best_move)
     }
 
@@ -81,9 +90,13 @@ impl<const N: usize> ExpectimaxStrategy<N> {
         max_tile as f64
     }
     pub fn utility_average(&self, state: &Game<N>) -> f64 {
-        let tiles_sum = state.get_tiles_sum() as f64;
+        // let tiles_sum = state.get_tiles_sum() as f64;
         let non_empty_tiles = (N*N - state.get_empty_tiles().len()) as f64;
-        tiles_sum / (non_empty_tiles * non_empty_tiles)
+        1.0 as f64 / (non_empty_tiles as f64 * non_empty_tiles as f64) as f64
+    }
+    pub fn utility_empty_tiles(&self, state: &Game<N>) -> f64 {
+        let empty_tiles = state.get_empty_tiles().len() as f64;
+        return empty_tiles;
     }
     pub fn utility_num_empty_tiles(&self, state: &Game<N>) -> f64 {
         let empty_tiles = state.get_empty_tiles().len() as f64;
@@ -93,17 +106,29 @@ impl<const N: usize> ExpectimaxStrategy<N> {
         let tiles_sum = state.get_tiles_sum() as f64;
         tiles_sum
     }
-    pub fn utility_max_tile_average(&self, state: &Game<N>) -> f64 {
+    pub fn utility_max_tile_over_empty_tiles_squared(&self, state: &Game<N>) -> f64 {
         let (_, max_tile) = state.get_max_tile();
         let non_empty_tiles = (N*N - state.get_empty_tiles().len()) as f64;
         max_tile as f64 / (non_empty_tiles * non_empty_tiles)
     }
     pub fn utility(&self, state: &Game<N>) -> f64 {
         let mut rng = rand::thread_rng(); // Create a new random number generator
-        if rng.gen_range(1..=5000) == 10{
-            self.log_to_file(format!("corner utility: {}, monotone utility: {}, max tile utility: {}, num empty tiles utility: {}, board: {:?}", self.corner_utility(state), self.monotone_utility(state), self.utility_max_tile(state), self.utility_num_empty_tiles(state), state.data()).as_str());
-        }
-        self.corner_utility(state) + self.monotone_utility(state) + self.utility_max_tile(state)  + self.utility_num_empty_tiles(state)
+    
+        // let monotone = self.monotone_utility(state) / 16.0;
+        let corner_utility = self.corner_utility(state);
+        // if monotone > 3.0 {
+        //     return self.corner_utility(state) * 10.0;
+        // } else {
+        //     self.corner_utility(state) * 10.0  + self.monotone_utility(state) + self.utility_num_empty_tiles(state)
+        // }
+        // if rng.gen_range(1..=5000) == 10{
+        //     self.log_to_file(format!("corner utility: {}, monotone utility: {}, max tile utility: {}, num empty tiles utility: {}, board: {:?}", corner_utility, monotone, self.utility_max_tile(state), self.utility_num_empty_tiles(state), state.data()).as_str());
+        // }
+        corner_utility
+    }
+
+    pub fn gamma_utility(&self, state: &Game<N>) -> f64 {
+        return self.alpha * self.utility_max_tile(state) + self.beta * self.utility_num_empty_tiles(state) + self.gamma * (5000000f64 - self.corner_utility(state)); // TODO this should be - 
     }
 
     pub fn corner_utility(&self, state: &Game<N>) -> f64 {
@@ -114,25 +139,21 @@ impl<const N: usize> ExpectimaxStrategy<N> {
         // let mut stdout = BufWriter::new(stdout_raw.lock());
         // let board = board::Board::new();
         // display::display_game(&mut stdout, &board, &state).unwrap();
-        let mut corner_score = 0.0 as f64;
+        let mut corner_score = 0.0f64;
         let (i, max_tile) = state.get_max_tile();
-        if max_tile <= 2048 || i == 0 {
+        if max_tile <= 1024 || i == 0 || true {
             for (index, &value) in state.data().iter().enumerate() {
                 corner_score += (((index / N) as usize + index % N as usize) * value.pow(6) as usize) as f64;
             }
-        } else {
-            for (index, &value) in state.data().iter().enumerate() {
-                corner_score += ((index / N).abs_diff(i / N) + (index % N).abs_diff(i % N)) as f64 * value.pow(6) as f64;
-            }
-        }
-        -corner_score
+        } 
+        -corner_score / 1000000.0f64
     }
 
     pub fn monotone_utility(&self, state: &Game<N>) -> f64 {
         let mut score = 0.0;
         for i in 0..N {
             if(state.data()[i * N] > state.data()[i * N + 1] && state.data()[i * N + 1] > state.data()[i * N + 2] && state.data()[i * N + 2] > state.data()[i * N + 3]) {
-                score += state.data()[i] as f64;
+                score += 1.0;
             }
         }
         score
