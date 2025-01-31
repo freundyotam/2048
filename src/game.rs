@@ -1,6 +1,6 @@
-use super::algorithm;
 use strum_macros::EnumIter;
 use rand::prelude::*;
+use crate::algorithm;
 use rand::distributions::WeightedIndex;
 
 use rand::{
@@ -30,7 +30,7 @@ pub struct Game<const N: usize> {
     status: GameStatus,
     already_won: bool,
     score: i32,
-    data: Vec<i32>,
+    pub data: Vec<i32>,
     dimention: i32,
 }
 

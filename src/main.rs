@@ -25,103 +25,189 @@ fn main() -> Result<(), std::io::Error>{
     let board = board::Board::new();
     const BOARD_DIMISION: usize = 4;
     let mut game: Game<BOARD_DIMISION> = game::Game::new();
-    let depth = 4;
+    let depth = 2;
     display::display_game(&mut stdout, &board, &game)?.flush()?;
 
 
-    let mut alpha = 0.425;
-    let mut beta =  0.13;
-    let mut gamma = 0.767;
     let mut file = OpenOptions::new()
             .write(true)
             .append(true)
             .create(true)
-            .open(format!("log_games_depth_{:?}_size_{:?}_time_{:?}_gamma_again2.txt", depth, BOARD_DIMISION, chrono::offset::Local::now()).as_str())
+            .open(format!("day_1_{:?}_size_{:?}_time_{:?}.txt", depth, BOARD_DIMISION, chrono::offset::Local::now()).as_str())
             .unwrap();
 
-    // let mut max_points = 0;
-    // let mut old_max_points = 0;
-    // let mut old_alpha = 0.0;
-    // let mut old_beta = 0.0;
-    // let mut old_gamma = 0.0;
-    // for _ in 0..500 {
-    //     alpha = rand::thread_rng().gen_range(0..1000) as f64 / 1000.0;
-    //     beta = rand::thread_rng().gen_range(0..1000) as f64 / 1000.0;
-    //     gamma = rand::thread_rng().gen_range(0..1000) as f64 / 1000.0;
-    //     for _ in 0..30 {
-    //         let mut strategy = ExpectimaxStrategy::<BOARD_DIMISION>::new(depth, alpha, beta, gamma);
-    //         let mut game: Game<BOARD_DIMISION> = game::Game::new();
-    //         while true {
-    //             let best_move: Option<Direction> = strategy.calculate_next_move(&game);
-    //             match best_move {
-    //                 Some(_) => {
-    //                     let best_move = best_move.unwrap();
-    //                     game.movement(&best_move);
-    //                     if game.get_empty_tiles().len() == 0 {
-    //                         // writeln!(file, "reseting game, depth is : {}", format!("{:?}", depth).as_str());
-    //                         if game.get_max_tile().1 >= 2048 {
-    //                             writeln!(file, "game won, max tile is : {}", format!("{:?}", game.get_max_tile().0).as_str());
-    //                             max_points += game.get_max_tile().1;
-    //                         }
-    //                         break;
-    //                     }
-    //                     game.new_random_tile();
-    //                     // writeln!(file, "{}", format!("{:?}", game.data()).as_str()); 
-    //                     display::display_game(&mut stdout, &board, &game)?.flush()?;
-    //                 }
-    //                 None => {
-    //                     writeln!(file, "resetting game");
-    //                     if game.get_max_tile().1 >= 2048 {
-    //                         writeln!(file, "game won, max tile is : {}", format!("{:?}", game.get_max_tile().0).as_str());
-    //                         max_points += game.get_max_tile().1;
-    //                     }
-    //                     break;
-    //                 }
-    //             }   
-            
-    //         }
-    //     }
-    //     if max_points > old_max_points {
-    //         old_max_points = max_points;
-    //         old_alpha = alpha;
-    //         old_beta = beta;
-    //         old_gamma = gamma;
-    //     }    
-    //     writeln!(file, "alpha is : {}, beta is : {}, gamma is : {}, max wins is : {}", old_alpha, old_beta, old_gamma, old_max_points);
+    let mut global_max_points = 0;
+    let mut global_aplha = rand::thread_rng().gen_range(1..10) as f64 / 10.0;
+    let mut global_beta = rand::thread_rng().gen_range(1..10) as f64 / 10.0;
+    let mut global_gamma = rand::thread_rng().gen_range(1..10) as f64 / 10.0;
+    let mut global_delta = rand::thread_rng().gen_range(1..10) as f64 / 10.0;
+    let mut global_lambda = rand::thread_rng().gen_range(1..10) as f64 / 10.0;
 
-    // }
-    // writeln!(file, "alpha is : {}, beta is : {}, gamma is : {}, max wins is : {}", old_alpha, old_beta, old_gamma, old_max_points)
-    
+    let mut current_points = 0;
+    let mut current_alpha = 0.0;
+    let mut current_beta = 0.0;
+    let mut current_gamma = 0.0;
+    let mut current_delta = 0.0;
+    let mut current_lambda = 0.0;
+//     for _ in 0..500 {
+//         current_alpha = rand::thread_rng().gen_range(0..10) as f64 / 10.0;
+//         current_beta = rand::thread_rng().gen_range(0..10) as f64 / 10.0;
+//         current_gamma = rand::thread_rng().gen_range(0..10) as f64 / 10.0;
+//         current_delta = rand::thread_rng().gen_range(0..10) as f64 / 10.0;
+//         current_lambda = rand::thread_rng().gen_range(0..10) as f64 / 10.0;
+//         current_points = 0;
+//         writeln!(file, "var to begin with alpha is : {}, beta is : {}, gamma is : {}, delta is : {}, lambda is : {}", current_alpha, current_beta, current_gamma, current_delta, current_lambda);
+//         for _ in 0..5 {
+//             let mut strategy = ExpectimaxStrategy::<BOARD_DIMISION>::new(depth, current_alpha, current_beta, current_gamma, current_delta, current_lambda);
+//             let mut game: Game<BOARD_DIMISION> = game::Game::new();
+//             while true {
+//                 if game.check_if_lost() {
+//                     writeln!(file, "resetting game");
+//                     current_points += game.get_max_tile().1;
+//                     if game.get_max_tile().1 >= 2048 {
+//                         writeln!(file, "game won, max tile is : {}", format!("{:?}", game.get_max_tile().1).as_str());
+//                     }
+//                     break;
+//                 }
+//                 let best_move: Option<Direction> = strategy.calculate_next_move(&game);
+//                 match best_move {
+//                     Some(_) => {
+//                         let best_move = best_move.unwrap();
+//                         game.movement(&best_move);
+//                         if game.get_empty_tiles().len() > 0 {
+//                             game.new_random_tile();
+//                         }
+//                         display::display_game(&mut stdout, &board, &game)?.flush()?;
+//                     }
+//                     None => {
+//                         writeln!(file, "resetting game");
+//                         current_points += game.get_max_tile().1;
+//                         if game.get_max_tile().1 >= 2048 {
+//                             writeln!(file, "game won, max tile is : {}", format!("{:?}", game.get_max_tile().1).as_str());
+//                         }
+//                         break;
+//                     }
+//                 }   
+//             }
+//         }
+//         if current_points > global_max_points {
+//             global_max_points = current_points;
+//             global_aplha = current_alpha;
+//             global_beta = current_beta;
+//             global_gamma = current_gamma;
+//             global_delta = current_delta;
+//             global_lambda = current_lambda;
+//             writeln!(file, " found better solution: alpha is : {}, beta is : {}, gamma is : {}, delta is {}, max wins is : {}", global_aplha, global_beta, global_gamma, global_delta, global_max_points);
+//         } else {
+//             writeln!(file, " no better solution found");
+//         }   
+//         writeln!(file, "finished with current alpha is : {}, beta is : {}, gamma is : {}, delta is {}, max wins is : {}", current_alpha, current_beta, current_gamma, current_delta, current_points);
+//    }
 
 
-    for _ in 0..110 {
-        let mut strategy = ExpectimaxStrategy::<BOARD_DIMISION>::new(depth, alpha, beta, gamma);
+    let mut no_bettter_solution = 0;
+   for _ in 0..500 {
+    current_alpha = global_aplha + rand::thread_rng().gen_range(-1..1) as f64 / 10.0;
+    current_beta = global_beta + rand::thread_rng().gen_range(-1..1) as f64 / 10.0;
+    current_gamma = global_gamma + rand::thread_rng().gen_range(-1..1) as f64 / 10.0;
+    current_delta = global_delta + rand::thread_rng().gen_range(-1..1) as f64 / 10.0;
+    current_lambda = global_lambda + rand::thread_rng().gen_range(-1..1) as f64 / 10.0;
+    current_points = 0;
+    writeln!(file, "var to begin with alpha is : {}, beta is : {}, gamma is : {}, delta is : {}, lambda is : {}", current_alpha, current_beta, current_gamma, current_delta, current_lambda);
+    for _ in 0..3 {
+        let mut strategy = ExpectimaxStrategy::<BOARD_DIMISION>::new(depth, current_alpha, current_beta, current_gamma, current_delta, current_lambda);
         let mut game: Game<BOARD_DIMISION> = game::Game::new();
         while true {
+            if game.check_if_lost() {
+                writeln!(file, "resetting game");
+                current_points += game.get_max_tile().1;
+                if game.get_max_tile().1 >= 2048 {
+                    writeln!(file, "game won, max tile is : {}", format!("{:?}", game.get_max_tile().1).as_str());
+                }
+                break;
+            }
             let best_move: Option<Direction> = strategy.calculate_next_move(&game);
             match best_move {
                 Some(_) => {
                     let best_move = best_move.unwrap();
                     game.movement(&best_move);
-                    if game.get_empty_tiles().len() == 0 {
-                        writeln!(file, "reseting game, depth is : {}", format!("{:?}", depth).as_str());
-                        let best_move: Option<Direction> = strategy.calculate_next_move(&game);
-                        let mut game: Game<BOARD_DIMISION> = game::Game::new();
-                        break;
+                    if game.get_empty_tiles().len() > 0 {
+                        game.new_random_tile();
                     }
-                    game.new_random_tile();
-                    writeln!(file, "{}", format!("{:?}", game.data()).as_str()); 
                     display::display_game(&mut stdout, &board, &game)?.flush()?;
                 }
                 None => {
                     writeln!(file, "resetting game");
-                    let best_move: Option<Direction> = strategy.calculate_next_move(&game);
-                    let mut game: Game<BOARD_DIMISION> = game::Game::new();
+                    current_points += game.get_max_tile().1;
+                    if game.get_max_tile().1 >= 2048 {
+                        writeln!(file, "game won, max tile is : {}", format!("{:?}", game.get_max_tile().1).as_str());
+                    }
                     break;
                 }
             }   
         }
     }
-    writeln!(file, "alpha is : {}, beta is : {}, gamma is : {}", alpha, beta, gamma)
+    if current_points > global_max_points {
+        global_max_points = current_points;
+        global_aplha = current_alpha;
+        global_beta = current_beta;
+        global_gamma = current_gamma;
+        global_delta = current_delta;
+        global_lambda = current_lambda;
+        writeln!(file, " found better solution: alpha is : {}, beta is : {}, gamma is : {}, delta is {}, max wins is : {}", global_aplha, global_beta, global_gamma, global_delta, global_max_points);
+    } else {
+        writeln!(file, "no better solution found");
+        no_bettter_solution += 1;
+        if no_bettter_solution > 10 {
+            global_max_points = 0;
+            global_aplha = rand::thread_rng().gen_range(1..10) as f64 / 10.0;
+            global_beta = rand::thread_rng().gen_range(1..10) as f64 / 10.0;
+            global_gamma = rand::thread_rng().gen_range(1..10) as f64 / 10.0;
+            global_delta = rand::thread_rng().gen_range(1..10) as f64 / 10.0;
+            global_lambda = rand::thread_rng().gen_range(1..10) as f64 / 10.0;
+            no_bettter_solution = 0;
+            writeln!(file, "restaring with new values");
+        }
+    }   
+        writeln!(file, "finished with current alpha is : {}, beta is : {}, gamma is : {}, delta is {}, max wins is : {}", current_alpha, current_beta, current_gamma, current_delta, current_points);
+    }
+
+
+
+   
+   
+  
+    
+
+
+    // for _ in 0..110 {    
+    //     let mut strategy = ExpectimaxStrategy::<BOARD_DIMISION>::new(depth, 0.5, 0.8, 0.6, 0.0, 0.2);
+    //     let mut game: Game<BOARD_DIMISION> = game::Game::new();
+    //     while true {
+    //         let best_move: Option<Direction> = strategy.calculate_next_move(&game);
+    //         match best_move {
+    //             Some(_) => {
+    //                 let best_move = best_move.unwrap();
+    //                 game.movement(&best_move);
+    //                 if game.get_empty_tiles().len() == 0 {
+    //                     writeln!(file, "reseting game, depth is : {}", format!("{:?}", depth).as_str());
+    //                     let best_move: Option<Direction> = strategy.calculate_next_move(&game);
+    //                     let mut game: Game<BOARD_DIMISION> = game::Game::new();
+    //                     break;
+    //                 }
+    //                 game.new_random_tile();
+    //                 writeln!(file, "{}", format!("{:?}", game.data()).as_str()); 
+    //                 display::display_game(&mut stdout, &board, &game)?.flush()?;
+    //             }
+    //             None => {
+    //                 writeln!(file, "resetting game");
+    //                 let best_move: Option<Direction> = strategy.calculate_next_move(&game);
+    //                 let mut game: Game<BOARD_DIMISION> = game::Game::new();
+    //                 break;
+    //             }
+    //         }   
+    //     }
+    // }
+    Ok(())
 }
 
