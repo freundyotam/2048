@@ -38,6 +38,14 @@ impl<const N: usize> ExpectimaxStrategy<N> {
             lambda: lambda,
         }
     }
+    pub fn printBoard(data: &[i32]) -> () {
+        for i in 0..N {
+            for j in 0..N {
+                print!("{:4}", data[i * N + j]);
+            }
+            println!("\n")
+        }
+    }
     pub fn expectimax(&mut self, state: &Game<N>, depth: usize) -> (f64, Option<Direction>) {
         if state.check_if_lost(){
             return (f64::NEG_INFINITY, None);
@@ -61,7 +69,7 @@ impl<const N: usize> ExpectimaxStrategy<N> {
             for (empty_index, tile_value) in all_tiles_and_possibilities {
                 let mut state_after_new_tile = state_after_my_turn.clone();
                 state_after_new_tile.new_tile(empty_index as usize, tile_value);
-                printBoard(state_after_new_tile.data());
+                Self::printBoard(state_after_new_tile.data());
                 let mut score = 0.0;
                 match self.cache.get(&state_after_new_tile) {
                     Some((cache_score, _)) => score = *cache_score,
@@ -244,11 +252,6 @@ impl<const N: usize> ExpectimaxStrategy<N> {
         }
 
     }
-    fn printBoard(data: &[i32]) -> _ {
-        for i in N*N {
-            println!("{:?}", &data[i*4..i*4+4]);
-        }
-        println!("\n");
-    }
+
 }
 
