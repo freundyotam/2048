@@ -197,4 +197,31 @@ impl <const N: usize> Game<N> {
             },
         );
     }
+    pub fn get_tiles_snake_sum(&self) -> f64 {
+        let weight_matrix = [
+            [65536.0, 32768.0, 16384.0, 8192.0],  // Highest priority row
+            [1024.0, 2048.0, 4096.0, 8192.0],     // Zigzag down
+            [512.0, 256.0, 128.0, 64.0],          // Continue snake
+            [2.0, 4.0, 8.0, 16.0]                 // Lowest priority row
+        ];
+    
+        let mut sum: f64 = 0.0;
+    
+        for i in 0..N {
+            for j in 0..N {
+                sum += self.get_tile(i, j) as f64 * weight_matrix[i][j];
+            }
+        }
+    
+        sum
+    }
+
+    pub fn get_tile(&self, row: usize, col: usize) -> i32 {
+        let index = N * row + col;
+        let value = self.data[index].clone() as u32;
+        if value == 0 {
+            return 0;
+        }
+        2i32.pow(value)
+    }
 }

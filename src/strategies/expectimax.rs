@@ -51,7 +51,7 @@ impl<const N: usize> ExpectimaxStrategy<N> {
             return (f64::NEG_INFINITY, None);
         }
         if depth == 0 {
-            return (self.snake_utility2(state), None);
+            return (self.utility_snake_shape(state), None);
         }
 
         let mut best_score: f64 = f64::NEG_INFINITY;
@@ -69,7 +69,7 @@ impl<const N: usize> ExpectimaxStrategy<N> {
             for (empty_index, tile_value) in all_tiles_and_possibilities {
                 let mut state_after_new_tile = state_after_my_turn.clone();
                 state_after_new_tile.new_tile(empty_index as usize, tile_value);
-                Self::printBoard(state_after_new_tile.data());
+                // Self::printBoard(state_after_new_tile.data());
                 let mut score = 0.0;
                 match self.cache.get(&state_after_new_tile) {
                     Some((cache_score, _)) => score = *cache_score,
@@ -227,6 +227,11 @@ impl<const N: usize> ExpectimaxStrategy<N> {
             score += state.data()[i] as f64 * (i + 1) as f64;
         }
         score
+    }
+
+    pub fn utility_snake_shape(&self, state: &Game<N>) -> f64 {
+        let sum = state.get_tiles_snake_sum();
+        sum
     }
 
     pub fn is_next_to_each_other((x1, y1): (i32, i32), (x2, y2): (i32,i32), state: &Game<N>) -> i32 {
