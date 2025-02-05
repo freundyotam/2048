@@ -11,6 +11,8 @@ use std::io::prelude::*;
 use rand::Rng; 
 use std::cmp;
 
+
+
 pub struct ExpectimaxStrategy<const N: usize>{
     pub cache: HashMap<Game<N>, (f64, Option<Direction>)>,
     pub depth: usize,
@@ -38,14 +40,7 @@ impl<const N: usize> ExpectimaxStrategy<N> {
             lambda: lambda,
         }
     }
-    pub fn printBoard(data: &[i32]) -> () {
-        for i in 0..N {
-            for j in 0..N {
-                print!("{:4}", data[i * N + j]);
-            }
-            println!("\n")
-        }
-    }
+
     pub fn expectimax(&mut self, state: &Game<N>, depth: usize) -> (f64, Option<Direction>) {
         if state.check_if_lost(){
             return (f64::NEG_INFINITY, None);

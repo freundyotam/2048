@@ -113,23 +113,27 @@ fn main() -> Result<(), std::io::Error>{
 
 
     let mut no_bettter_solution = 0;
-   for _ in 0..500 {
+   for i in 0..10 {
+
+    writeln!(file, "Game #{}", i)?;
+
+
     current_alpha = global_aplha + rand::thread_rng().gen_range(-1..1) as f64 / 10.0;
     current_beta = global_beta + rand::thread_rng().gen_range(-1..1) as f64 / 10.0;
     current_gamma = global_gamma + rand::thread_rng().gen_range(-1..1) as f64 / 10.0;
     current_delta = global_delta + rand::thread_rng().gen_range(-1..1) as f64 / 10.0;
     current_lambda = global_lambda + rand::thread_rng().gen_range(-1..1) as f64 / 10.0;
     current_points = 0;
-    writeln!(file, "var to begin with alpha is : {}, beta is : {}, gamma is : {}, delta is : {}, lambda is : {}", current_alpha, current_beta, current_gamma, current_delta, current_lambda);
+    // writeln!(file, "var to begin with alpha is : {}, beta is : {}, gamma is : {}, delta is : {}, lambda is : {}", current_alpha, current_beta, current_gamma, current_delta, current_lambda);
     for _ in 0..3 {
         let mut strategy = ExpectimaxStrategy::<BOARD_DIMISION>::new(depth, current_alpha, current_beta, current_gamma, current_delta, current_lambda);
         let mut game: Game<BOARD_DIMISION> = game::Game::new();
         while true {
             if game.check_if_lost() {
-                writeln!(file, "resetting game");
+                game.print_board(&mut file);
                 current_points += game.get_max_tile().1;
                 if game.get_max_tile().1 >= 2048 {
-                    writeln!(file, "game won, max tile is : {}", format!("{:?}", game.get_max_tile().1).as_str());
+                    writeln!(file, "game won, max tile is : {}", format!("{:?}", game.get_max_tile().1).as_str())?;
                 }
                 break;
             }
@@ -144,10 +148,10 @@ fn main() -> Result<(), std::io::Error>{
                     display::display_game(&mut stdout, &board, &game)?.flush()?;
                 }
                 None => {
-                    writeln!(file, "resetting game");
+                    game.print_board(&mut file);
                     current_points += game.get_max_tile().1;
                     if game.get_max_tile().1 >= 2048 {
-                        writeln!(file, "game won, max tile is : {}", format!("{:?}", game.get_max_tile().1).as_str());
+                        writeln!(file, "game won, max tile is : {}", format!("{:?}", game.get_max_tile().1).as_str())?;
                     }
                     break;
                 }
@@ -161,9 +165,9 @@ fn main() -> Result<(), std::io::Error>{
         global_gamma = current_gamma;
         global_delta = current_delta;
         global_lambda = current_lambda;
-        writeln!(file, " found better solution: alpha is : {}, beta is : {}, gamma is : {}, delta is {}, max wins is : {}", global_aplha, global_beta, global_gamma, global_delta, global_max_points);
+        // writeln!(file, " found better solution: alpha is : {}, beta is : {}, gamma is : {}, delta is {}, max wins is : {}", global_aplha, global_beta, global_gamma, global_delta, global_max_points);
     } else {
-        writeln!(file, "no better solution found");
+        // writeln!(file, "no better solution found");
         no_bettter_solution += 1;
         if no_bettter_solution > 10 {
             global_max_points = 0;
@@ -173,10 +177,10 @@ fn main() -> Result<(), std::io::Error>{
             global_delta = rand::thread_rng().gen_range(1..10) as f64 / 10.0;
             global_lambda = rand::thread_rng().gen_range(1..10) as f64 / 10.0;
             no_bettter_solution = 0;
-            writeln!(file, "restaring with new values");
+            // writeln!(file, "restaring with new values");
         }
     }   
-        writeln!(file, "finished with current alpha is : {}, beta is : {}, gamma is : {}, delta is {}, max wins is : {}", current_alpha, current_beta, current_gamma, current_delta, current_points);
+        // writeln!(file, "finished with current alpha is : {}, beta is : {}, gamma is : {}, delta is {}, max wins is : {}", current_alpha, current_beta, current_gamma, current_delta, current_points);
     }
 
 

@@ -2,6 +2,8 @@ use strum_macros::EnumIter;
 use rand::prelude::*;
 use crate::algorithm;
 use rand::distributions::WeightedIndex;
+use std::fs::File;
+use std::io::{Write, Result};
 
 use rand::{
     prelude::{IteratorRandom, SliceRandom},
@@ -223,5 +225,16 @@ impl <const N: usize> Game<N> {
             return 0;
         }
         2i32.pow(value)
+    }
+
+    pub fn print_board(&self, file: &mut File) -> Result<()> {
+        for i in 0..N {
+            for j in 0..N {
+                write!(file, "|{:4}|", self.data[i * N + j])?;
+            }
+            writeln!(file)?; // Newline after each row
+        }
+        writeln!(file)?; // Extra newline for separation
+        Ok(())
     }
 }
