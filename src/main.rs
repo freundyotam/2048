@@ -29,11 +29,18 @@ fn main() -> Result<(), std::io::Error>{
     display::display_game(&mut stdout, &board, &game)?.flush()?;
 
 
+    // let mut file = OpenOptions::new()
+    //         .write(true)
+    //         .append(true)
+    //         .create(true)
+    //         .open(format!("day_1_{:?}_size_{:?}_time_{:?}.txt", depth, BOARD_DIMISION, chrono::offset::Local::now()).as_str())
+    //         .unwrap();
+
     let mut file = OpenOptions::new()
             .write(true)
             .append(true)
             .create(true)
-            .open(format!("day_1_{:?}_size_{:?}_time_{:?}.txt", depth, BOARD_DIMISION, chrono::offset::Local::now()).as_str())
+            .open("result.txt")
             .unwrap();
 
     let mut global_max_points = 0;
