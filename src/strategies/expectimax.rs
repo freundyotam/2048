@@ -42,12 +42,15 @@ impl<const N: usize> ExpectimaxStrategy<N> {
     }
 
     pub fn expectimax(&mut self, state: &Game<N>, depth: usize) -> (f64, Option<Direction>) {
-        if state.check_if_lost(){
-            return (f64::NEG_INFINITY, None);
-        }
+
         if depth == 0 {
-            return (self.utility_snake_shape(state), None);
+            return (self.main_utility(state), None);
         }
+
+        if state.check_if_lost(){
+            return (self.main_utility(state) / (depth * 1000) as f64, None);
+        }
+        
 
         let mut best_score: f64 = f64::NEG_INFINITY;
         let mut best_move = None;
@@ -88,6 +91,25 @@ impl<const N: usize> ExpectimaxStrategy<N> {
         (best_score, best_move)
     }
 
+
+    pub fn main_utility(&self, state: &Game<N>) -> f64 {
+        let snake_sum = state.get_tiles_snake_sum();
+        let smoothness = state.get_smoothness();
+        let empty_tiles = state.get_empty_tiles().len() as f64;
+        let merging_poteitial = state.get_merging_potential();
+        let result = snake_sum + smoothness * 100.0 + empty_tiles * 1000.0 + merging_poteitial * 500.0;
+        result
+    }
+
+    pub fn utility_snake_shape(&self, state: &Game<N>) -> f64 {
+        let sum = state.get_tiles_snake_sum();
+        sum
+    }
+
+    pub fn utility_smoothness(&self, state: &Game<N>) -> f64 {
+        let smoothness = state.get_smoothness();
+        smoothness
+    }
 
     pub fn utility_max_tile(&self, state: &Game<N>) -> f64 {
         let (_, max_tile) = state.get_max_tile();
@@ -130,6 +152,8 @@ impl<const N: usize> ExpectimaxStrategy<N> {
         // }
         corner_utility
     }
+
+
 
     pub fn gamma_utility(&self, state: &Game<N>) -> f64 {
         return self.alpha * self.utility_max_tile(state) + self.beta * self.utility_empty_tiles(state) + self.gamma * self.center_utility(state) + self.delta * self.snake_utility(state) + self.lambda * self.corner_utility(state); // TODO this should be - 
@@ -224,10 +248,7 @@ impl<const N: usize> ExpectimaxStrategy<N> {
         score
     }
 
-    pub fn utility_snake_shape(&self, state: &Game<N>) -> f64 {
-        let sum = state.get_tiles_snake_sum();
-        sum
-    }
+
 
     pub fn is_next_to_each_other((x1, y1): (i32, i32), (x2, y2): (i32,i32), state: &Game<N>) -> i32 {
         if x1 < 0 || x1 >= N as i32 || y1 < 0 || y1 >= N as i32 || x2 < 0 || x2 >= N as i32 || y2 < 0 || y2 >= N as i32 {

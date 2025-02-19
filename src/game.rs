@@ -3,7 +3,7 @@ use rand::prelude::*;
 use crate::algorithm;
 use rand::distributions::WeightedIndex;
 use std::fs::File;
-use std::io::{Write, Result};
+use std::io::{BufWriter, Result, Write};
 
 use rand::{
     prelude::{IteratorRandom, SliceRandom},
@@ -88,27 +88,31 @@ impl <const N: usize> Game<N> {
         let mut score = 0;
         let mut won = false;
         self.data.chunks_mut(N).for_each(|row| {
-            let (new_row, new_score) = match dir {
+            let (new_row, new_score, is_moving) = match dir {
                 Direction::Right => algorithm::slide_right(row),
                 Direction::Left => algorithm::slide_left(row),
-                _ => (row.to_vec(), 0),
+                _ => (row.to_vec(), 0, false),
             };
             if new_score == 2048 {
                 won = true;
             }
             score += new_score;
+            
+            if is_moving == true {
+                mutated = true;
+            }
+
             for i in 0..N {
-                if row[i] != new_row[i] {
-                    row[i] = new_row[i];
-                    mutated = true;
-                }
+                row[i] = new_row[i];
             }
         });
+
         self.score += score;
         if won && !self.already_won {
             self.status = GameStatus::Won;
             self.already_won = true;
         }
+        
         mutated
     }
     fn vertical(&mut self, dir: Direction) -> bool {
@@ -199,6 +203,7 @@ impl <const N: usize> Game<N> {
             },
         );
     }
+
     pub fn get_tiles_snake_sum(&self) -> f64 {
         let weight_matrix = [
             [65536.0, 32768.0, 16384.0, 8192.0],  // Highest priority row
@@ -218,6 +223,73 @@ impl <const N: usize> Game<N> {
         sum
     }
 
+    pub fn get_smoothness(&self) -> f64 {
+        let mut smoothness: f64 = 0.0;
+    
+        for i in 0..N {
+            for j in 0..N {
+                let tile_value = self.get_tile(i, j) as f64;
+                if tile_value == 0.0 {
+                    continue; // Skip empty tiles
+                }
+    
+                // Check right neighbor
+                if j + 1 < N {
+                    let right_value = self.get_tile(i, j + 1) as f64;
+                    if right_value > 0.0 {
+                        smoothness -= (tile_value - right_value).abs();
+                    }
+                }
+    
+                // Check bottom neighbor
+                if i + 1 < N {
+                    let bottom_value = self.get_tile(i + 1, j) as f64;
+                    if bottom_value > 0.0 {
+                        smoothness -= (tile_value - bottom_value).abs();
+                    }
+                }
+            }
+        }
+    
+        smoothness // Negative, since lower absolute difference is better
+    }
+
+    pub fn get_merging_potential(&self) -> f64 {
+        let mut merges: f64 = 0.0;
+    
+        for i in 0..N {
+            for j in 0..N {
+                let tile_value = self.get_tile(i, j) as f64;
+                if tile_value == 0.0 {
+                    continue; // Skip empty tiles
+                }
+    
+                // Check right neighbor
+                if j + 1 < N && self.get_tile(i, j) == self.get_tile(i, j + 1) {
+                    merges += tile_value;
+                }
+    
+                // Check bottom neighbor
+                if i + 1 < N && self.get_tile(i, j) == self.get_tile(i + 1, j) {
+                    merges += tile_value;
+                }
+            }
+        }
+    
+        merges
+    }
+
+
+    pub fn get_monotonicaly(&self) -> f64 {
+        let mut value = 0.0;
+
+        for i in 0..(N*N - 1) {
+            let diff = (self.data[i] - self.data[i+1]).abs() as f64;
+            value -= diff;
+        }
+        value
+    }
+
     pub fn get_tile(&self, row: usize, col: usize) -> i32 {
         let index = N * row + col;
         let value = self.data[index].clone() as u32;
@@ -227,14 +299,14 @@ impl <const N: usize> Game<N> {
         2i32.pow(value)
     }
 
-    pub fn print_board(&self, file: &mut File) -> Result<()> {
+    pub fn print_board(&self, txt_writer: &mut BufWriter<File>) -> Result<()> {
         for i in 0..N {
             for j in 0..N {
-                write!(file, "|{:4}|", self.data[i * N + j])?;
+                write!(txt_writer, "|{:4}|", self.data[i * N + j])?;
             }
-            writeln!(file)?; // Newline after each row
+            writeln!(txt_writer)?; // Newline after each row
         }
-        writeln!(file)?; // Extra newline for separation
+        writeln!(txt_writer)?; // Extra newline for separation
         Ok(())
     }
 }

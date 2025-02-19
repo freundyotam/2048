@@ -14,7 +14,7 @@ use std::thread;
 use std::time::Duration;
 use game::{Direction, Game};
 use strategies::strategy::Strategy;
-use std::fs::OpenOptions;
+use std::fs::{File, OpenOptions};
 use chrono::prelude::*;
 use rand::Rng; // 0.8.5
 
@@ -25,7 +25,7 @@ fn main() -> Result<(), std::io::Error>{
     let board = board::Board::new();
     const BOARD_DIMISION: usize = 4;
     let mut game: Game<BOARD_DIMISION> = game::Game::new();
-    let depth = 2;
+    let depth = 3;
     display::display_game(&mut stdout, &board, &game)?.flush()?;
 
 
@@ -36,12 +36,15 @@ fn main() -> Result<(), std::io::Error>{
     //         .open(format!("day_1_{:?}_size_{:?}_time_{:?}.txt", depth, BOARD_DIMISION, chrono::offset::Local::now()).as_str())
     //         .unwrap();
 
-    let mut file = OpenOptions::new()
-            .write(true)
-            .append(true)
-            .create(true)
-            .open("result.txt")
-            .unwrap();
+    // let mut file = OpenOptions::new()
+    //         .write(true)
+    //         .append(true)
+    //         .create(true)
+    //         .open("result.txt")
+    //         .unwrap();
+
+    let file = File::create("results.txt")?;
+    let mut txt_writer = BufWriter::new(file);
 
     let mut global_max_points = 0;
     let mut global_aplha = rand::thread_rng().gen_range(1..10) as f64 / 10.0;
@@ -113,9 +116,7 @@ fn main() -> Result<(), std::io::Error>{
 
 
     let mut no_bettter_solution = 0;
-   for i in 0..10 {
-
-    writeln!(file, "Game #{}", i)?;
+   for i in 0..33 {
 
 
     current_alpha = global_aplha + rand::thread_rng().gen_range(-1..1) as f64 / 10.0;
@@ -125,16 +126,23 @@ fn main() -> Result<(), std::io::Error>{
     current_lambda = global_lambda + rand::thread_rng().gen_range(-1..1) as f64 / 10.0;
     current_points = 0;
     // writeln!(file, "var to begin with alpha is : {}, beta is : {}, gamma is : {}, delta is : {}, lambda is : {}", current_alpha, current_beta, current_gamma, current_delta, current_lambda);
-    for _ in 0..3 {
+    for j in 0..3 {
+        writeln!(txt_writer, "")?;
+        writeln!(txt_writer, "Game #{}", i*3 + j)?;
         let mut strategy = ExpectimaxStrategy::<BOARD_DIMISION>::new(depth, current_alpha, current_beta, current_gamma, current_delta, current_lambda);
         let mut game: Game<BOARD_DIMISION> = game::Game::new();
+        let mut iteration = 0;
+        let mut max_tile = 8;
         while true {
             if game.check_if_lost() {
-                game.print_board(&mut file);
+                writeln!(txt_writer, "")?;
+                game.print_board(&mut txt_writer);
                 current_points += game.get_max_tile().1;
                 if game.get_max_tile().1 >= 2048 {
-                    writeln!(file, "game won, max tile is : {}", format!("{:?}", game.get_max_tile().1).as_str())?;
+                    writeln!(txt_writer, "game won, max tile is : {}", format!("{:?}", game.get_max_tile().1).as_str())?;
                 }
+                writeln!(txt_writer, "")?;
+                writeln!(txt_writer, "-----------------------------------------")?;
                 break;
             }
             let best_move: Option<Direction> = strategy.calculate_next_move(&game);
@@ -148,14 +156,29 @@ fn main() -> Result<(), std::io::Error>{
                     display::display_game(&mut stdout, &board, &game)?.flush()?;
                 }
                 None => {
-                    game.print_board(&mut file);
+                    writeln!(txt_writer, "")?;
+                    game.print_board(&mut txt_writer);
                     current_points += game.get_max_tile().1;
                     if game.get_max_tile().1 >= 2048 {
-                        writeln!(file, "game won, max tile is : {}", format!("{:?}", game.get_max_tile().1).as_str())?;
+                        writeln!(txt_writer, "game won, max tile is : {}", format!("{:?}", game.get_max_tile().1).as_str())?;
                     }
                     break;
+                    writeln!(txt_writer, "")?;
+                    writeln!(txt_writer, "-----------------------------------------")?;
                 }
-            }   
+            }
+            
+            iteration += 1;
+
+            if game.get_max_tile().1 > max_tile {
+                writeln!(txt_writer, "Got to tile {} at iteration number: {}",
+                 format!("{:?}", game.get_max_tile().1).as_str(),
+                 format!("{:?}", iteration).as_str())?;
+                
+                max_tile = game.get_max_tile().1;
+            }
+
+            
         }
     }
     if current_points > global_max_points {
