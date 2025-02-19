@@ -1,5 +1,6 @@
 use crate::game::Game;
 use crate::game::Direction;
+use rand::seq::SliceRandom;
 use strum::IntoEnumIterator;
 use std::f64;
 use std::collections::HashMap;
@@ -22,8 +23,14 @@ pub struct ExpectimaxStrategy<const N: usize>{
 }
 impl<const N: usize> Strategy<N> for ExpectimaxStrategy<N> {
     fn calculate_next_move(&mut self, game: &Game<N>) -> Option<Direction> {
-        let (_best_score, best_move) = self.expectimax(game, self.depth);
-        best_move
+
+        // let (_best_score, best_move) = self.expectimax(game, self.depth);
+        // best_move
+        // return random direction
+        let mut rng = rand::thread_rng(); // Create a new random number generator
+        let directions = Direction::iter().collect::<Vec<Direction>>();
+        let random_direction = directions.choose(&mut rng);
+        random_direction.cloned()
     }
 }
 impl<const N: usize> ExpectimaxStrategy<N> {
@@ -43,15 +50,16 @@ impl<const N: usize> ExpectimaxStrategy<N> {
             for j in 0..N {
                 print!("{:4}", data[i * N + j]);
             }
-            println!("\n")
+            
         }
+        println!("\n")
     }
     pub fn expectimax(&mut self, state: &Game<N>, depth: usize) -> (f64, Option<Direction>) {
         if state.check_if_lost(){
             return (f64::NEG_INFINITY, None);
         }
         if depth == 0 {
-            return (self.utility_snake_shape(state), None);
+            return (self.utility_num_empty_tiles(state), None);
         }
 
         let mut best_score: f64 = f64::NEG_INFINITY;
@@ -148,11 +156,18 @@ impl<const N: usize> ExpectimaxStrategy<N> {
         // let mut stdout = BufWriter::new(stdout_raw.lock());
         // let board = board::Board::new();
         // display::display_game(&mut stdout, &board, &state).unwrap();
-        let mut corner_score = 0.0f64;
-        for (index, &value) in state.data().iter().enumerate() {
-            corner_score += (((index / N) as usize + index % N as usize) * value as usize) as f64;
+        let mut corner_score = 0.0 as f64;
+        let (i, max_tile) = state.get_max_tile();
+        if max_tile <= 2048 || i == 0 || true{
+            for (index, &value) in state.data().iter().enumerate() {
+                corner_score += (((index / N) as usize + index % N as usize) * value.pow(6) as usize) as f64;
+            }
+        } else {
+            for (index, &value) in state.data().iter().enumerate() {
+                corner_score += ((index / N).abs_diff(i / N) + (index % N).abs_diff(i % N)) as f64 * value.pow(6) as f64;
+            }
         }
-        corner_score / 10.0
+        -corner_score
     }
 
     pub fn center_utility(&self, state: &Game<N>) -> f64 {
