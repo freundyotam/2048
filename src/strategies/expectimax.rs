@@ -95,7 +95,7 @@ impl<const N: usize> ExpectimaxStrategy<N> {
     pub fn main_utility(&self, state: &Game<N>) -> f64 {
         let snake_sum = state.get_tiles_snake_sum();
         let empty_tiles = state.get_empty_tiles().len() as f64;
-        let result = snake_sum + empty_tiles * 10000.0;
+        let result = snake_sum + empty_tiles * 1000.0;
         result
     }
 
