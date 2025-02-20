@@ -205,6 +205,45 @@ impl <const N: usize> Game<N> {
     }
 
     pub fn get_tiles_snake_sum(&self) -> f64 {
+
+        let mut sum = 0.0;
+        if N == 4 {
+            sum = self.get_tiles_snake_sum_4x4();
+        }
+
+        if N == 3 {
+            sum = self.get_tiles_snake_sum_3x3();
+        }
+
+        if N == 5 {
+            sum = self.get_tiles_snake_sum_5x5();
+        }
+
+        sum
+    }
+
+    
+    pub fn get_tiles_snake_sum_3x3(&self) -> f64 {
+        let weight_matrix = [
+            [512.0, 1024.0, 2048.0], // Highest row
+            [256.0, 128.0, 64.0],       // Zigzag down
+            [8.0, 16.0, 32.0]            // Lowest row
+        ];
+    
+        let mut sum: f64 = 0.0;
+    
+        for i in 0..3 {
+            for j in 0..3 {
+                sum += self.get_tile(i, j) as f64 * weight_matrix[i][j];
+            }
+        }
+    
+        sum
+    }
+    
+
+
+    pub fn get_tiles_snake_sum_4x4(&self) -> f64 {
         let weight_matrix = [
             [65536.0, 32768.0, 16384.0, 8192.0],  // Highest priority row
             [512.0, 1024.0, 2048.0, 4096.0],     // Zigzag down
@@ -214,14 +253,38 @@ impl <const N: usize> Game<N> {
     
         let mut sum: f64 = 0.0;
     
-        for i in 0..N {
-            for j in 0..N {
+        for i in 0..4 {
+            for j in 0..4 {
                 sum += self.get_tile(i, j) as f64 * weight_matrix[i][j];
             }
         }
     
         sum
     }
+
+
+
+    pub fn get_tiles_snake_sum_5x5(&self) -> f64 {
+        let weight_matrix = [
+            [1048576.0, 524288.0, 262144.0, 131072.0, 65536.0], // Highest priority row
+            [2048.0, 4096.0, 8192.0, 16384.0, 32768.0],         // Zigzag down
+            [1024.0, 512.0, 256.0, 128.0, 64.0],               // Continue snake
+            [2.0, 4.0, 8.0, 16.0, 32.0],                       // Keep priority decreasing
+            [1.0, 0.5, 0.25, 0.125, 0.025]                          // Lowest priority row
+        ];
+    
+        let mut sum: f64 = 0.0;
+    
+        for i in 0..5 {
+            for j in 0..5 {
+                sum += self.get_tile(i, j) as f64 * weight_matrix[i][j];
+            }
+        }
+    
+        sum
+    }
+
+    
 
     pub fn get_smoothness(&self) -> f64 {
         let mut smoothness: f64 = 0.0;

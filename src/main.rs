@@ -24,14 +24,24 @@ fn main() -> Result<(), std::io::Error>{
     let mut stdout = BufWriter::new(stdout_raw.lock());
     crossterm::terminal::enable_raw_mode()?;
     let board = board::Board::new();
-    const BOARD_DIMISION: usize = 4;
+    const BOARD_DIMISION: usize = 5;
     let game: Game<BOARD_DIMISION> = game::Game::new();
     let depth = 2;
     display::display_game(&mut stdout, &board, &game)?.flush()?;
 
 
     //Create file:
-    let file = File::create("results.csv")?;
+    let file = File::create("results_5x5.csv")?;
+
+    // let file = File::create(format!("random_{:?}size{:?}time{:?}.txt", depth, BOARD_DIMISION, chrono::offset::Local::now()).as_str());
+
+    // let file = OpenOptions::new()
+    //         .write(true)
+    //         .append(true)
+    //         .create(true)
+    //         .open(format!("snake_{:?}size{:?}time{:?}.txt", depth, BOARD_DIMISION, chrono::offset::Local::now()).as_str())
+    //         .unwrap();
+
     let mut csv_writer = BufWriter::new(file);
 
     // Write the CSV header
@@ -39,7 +49,7 @@ fn main() -> Result<(), std::io::Error>{
 
 
     let mut no_bettter_solution = 0;
-    for _i in 0..1 {
+    for _i in 0..3 {
         
         let mut strategy = ExpectimaxStrategy::<BOARD_DIMISION>::new(depth, 0.0, 0.0,0.0,0.0,0.0);
         let mut game: Game<BOARD_DIMISION> = game::Game::new();
