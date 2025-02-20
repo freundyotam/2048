@@ -211,6 +211,10 @@ impl <const N: usize> Game<N> {
             sum = self.get_tiles_snake_sum_4x4();
         }
 
+        if N == 2 {
+            sum = self.get_tiles_snake_sum_2x2();
+        }
+        
         if N == 3 {
             sum = self.get_tiles_snake_sum_3x3();
         }
@@ -222,7 +226,24 @@ impl <const N: usize> Game<N> {
         sum
     }
 
+
+    pub fn get_tiles_snake_sum_2x2(&self) -> f64 {
+        let weight_matrix = [
+            [512.0, 128.0],       
+            [8.0, 32.0]            
+        ];
     
+        let mut sum: f64 = 0.0;
+    
+        for i in 0..2 {
+            for j in 0..2 {
+                sum += self.get_tile(i, j) as f64 * weight_matrix[i][j];
+            }
+        }
+    
+        sum
+    }
+
     pub fn get_tiles_snake_sum_3x3(&self) -> f64 {
         let weight_matrix = [
             [512.0, 1024.0, 2048.0], // Highest row
