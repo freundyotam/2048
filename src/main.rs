@@ -8,6 +8,7 @@ mod game;
 mod three_d_game;
 mod strategies;
 use crate::strategies::expectimax::ExpectimaxStrategy;
+use crate::strategies::expectimax_three_d::ExpectimaxStrategyThreeD;
 use core::time;
 use std::io::{stdout, BufWriter, Write};
 use std::thread;
@@ -26,15 +27,12 @@ fn main() -> Result<(), std::io::Error>{
     const BOARD_DIMISION: usize = 4;
     let mut game: Game<BOARD_DIMISION> = game::Game::new();
     let mut game3d: three_d_game::ThreeDGame<BOARD_DIMISION> = three_d_game::ThreeDGame::new();
-    Ok(())
-    // display::display_game(&mut stdout, &board, &game)?.flush()?;
-    // let mut strategy = ExpectimaxStrategy::<BOARD_DIMISION>::new(3);
-    // loop {
-    //     let best_move = strategy.calculate_next_move(&game);
-    //     game.movement(&best_move.unwrap());
-    //     game.new_random_tile();
-    //     display::display_game(&mut stdout, &board, &game)?.flush()?;
-    //     thread::sleep(Duration::from_millis(100));
-    // }
+    let mut strategy = ExpectimaxStrategyThreeD::<BOARD_DIMISION>::new(3, 0.9, 0.1, 0.1, 0.1, 0.1);
+    loop {
+        let best_move = strategy.calculate_next_move(&game3d);
+        game3d.movement(&best_move.unwrap());
+        game3d.new_random_tile();
+        thread::sleep(Duration::from_millis(100));
+    }
 
 }

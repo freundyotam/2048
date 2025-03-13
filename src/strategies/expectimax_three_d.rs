@@ -110,25 +110,11 @@ impl<const N: usize> ExpectimaxStrategyThreeD<N> {
     }
 
 
-    pub fn main_utility(&self, state: &Game<N>) -> f64 {
-        let snake_sum = state.get_tiles_snake_sum();
-        let empty_tiles = state.get_empty_tiles().len() as f64;
-        let result = snake_sum + empty_tiles * 1000.0;
-        result
-    }
     pub fn utility_max_tile(&self, state: &ThreeDGame<N>) -> f64 {
         state.get_max_tile() as f64
     }
 
-    pub fn utility_snake_shape(&self, state: &Game<N>) -> f64 {
-        let sum = state.get_tiles_snake_sum();
-        sum
-    }
 
-    pub fn utility_smoothness(&self, state: &Game<N>) -> f64 {
-        let smoothness = state.get_smoothness();
-        smoothness
-    }
 
     pub fn utility_average(&self, state: &Game<N>) -> f64 {
         // let tiles_sum = state.get_tiles_sum() as f64;
@@ -147,11 +133,7 @@ impl<const N: usize> ExpectimaxStrategyThreeD<N> {
         let tiles_sum = state.get_tiles_sum() as f64;
         tiles_sum
     }
-    pub fn utility_max_tile_over_empty_tiles_squared(&self, state: &Game<N>) -> f64 {
-        let (_, max_tile) = state.get_max_tile();
-        let non_empty_tiles = (N*N - state.get_empty_tiles().len()) as f64;
-        max_tile as f64 / (non_empty_tiles * non_empty_tiles)
-    }
+    
     pub fn utility(&self, state: &Game<N>) -> f64 {
         let mut rng = rand::thread_rng(); // Create a new random number generator
     
