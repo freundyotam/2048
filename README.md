@@ -49,19 +49,22 @@ This file contains the **core game logic**, defining how the board works, which 
 - **Spawning new tiles** → Randomly adds a `2` or `4` after each move.
 - **Handling heuristic-based scoring calculations**
 
-**Most of the file's code is taken from our main contributor, a link is appeared in the end**
+Some of the file's code is **sourced from the resorce project**, which is referenced in the External Resources section at the end of this README.
 
 ### `display.rs` 🖥️  
 Handles the **visual aspects** of the game, including the **header, footer, and board rendering**.
-**Most of the file's code is taken from our contributor, a link is appeared in the end**
+
+Some of the file's code is **sourced from the resorce project**, which is referenced in the External Resources section at the end of this README.
 
 ### `board.rs` 🔲  
 Manages the **board setup**, assigns **colors to tiles**, and **displays game results**.
-**Most of the file's code is taken from our contributor, a link is appeared in the end**
+
+Some of the file's code is **sourced from the resorce project**, which is referenced in the External Resources section at the end of this README.
 
 ### `algorithm.rs` 🧩  
-Implements **movement logic** and **post-move board adjustments** to ensure proper tile behavior.
-**Most of the file's code is taken from our main contributor, a link is appeared in the end**
+Implements **movement logic** and **post-move board adjustments** to ensure proper tile behavior
+
+Some of the file's code is **sourced from the resorce project**, which is referenced in the External Resources section at the end of this README.
 
 ###  `strategies/mod.rs` 🎨
 This file serves as a module declaration, making two modules public for access in other files.
@@ -82,7 +85,8 @@ This file implements the **Expectimax Search**. It is responsible for evaluating
 
 
 
-## Contributor 🤝
-We downloaded this github repositpry bellow:
+## External Resource 🤝
 
-https://github.com/pierrechevalier83/2048-rs
+This project incorporates code from the following source: 
+
+[https://github.com/pierrechevalier83/2048-rs](https://github.com/pierrechevalier83/2048-rs/tree/master/src)
