@@ -22,7 +22,7 @@ evaluation functions, making intelligent moves and maximizing the final score.
 2. Clone the repository:
 
    ```sh
-   git clone https://github.com/yourusername/2048.git
+   git clone https://github.com/freundyotam/2048.git
    cd 2048
 
 3. Run the game:
