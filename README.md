@@ -1,15 +1,15 @@
-# 2048 AI in Rust 🎮🦀  
+# 2048 AI in Rust  
 
 This project is an AI implementation for the **2048 game**, built in **Rust**. It uses **Expectimax search**, and includes
 evaluation functions, making intelligent moves and maximizing the final score.  
 
-## Features 🚀  
+## Features
 - **Rust implementation** for high performance and efficiency 
 - **AI-controlled gameplay** using the **Expectimax** algorithm  
 - **Heuristic-based scoring**, including **snake shape sum**  
 - **Flexible board sizes**, supporting **2x2, 3x3, 4x4, and 5x5** configurations  
 
-## How to Run 🛠️  
+## How to Run 
 1. Install Rust:
 
    Visit:
@@ -30,9 +30,9 @@ evaluation functions, making intelligent moves and maximizing the final score.
    cargo run
 
 
-## Project Source Structure 📂  
+## Project Source Structure
 
-### `main.rs` 🏠  
+### `main.rs` 
 This is the **main file** of the program, where everything starts. It sets up the **game board**, configures the **AI strategy**, and controls the **game loop**.  
 
 In this file, developers can:  
@@ -40,7 +40,7 @@ In this file, developers can:
 - **Adjust the AI’s search depth** to control how far ahead it plans moves  
 - **Choose how many games to run**
 
-### `game.rs` 🎲  
+### `game.rs`
 This file contains the **core game logic**, defining how the board works, which moves are allowed, and when the game ends.  
 
 #### Key functionalities:  
@@ -51,41 +51,42 @@ This file contains the **core game logic**, defining how the board works, which 
 
 Some of the file's code is **sourced from the resorce project**, which is referenced in the External Resources section at the end of this README.
 
-### `display.rs` 🖥️  
-Handles the **visual aspects** of the game, including the **header, footer, and board rendering**.
+### `display.rs` 
+Handles the **visual aspects** of the game.
 
 Some of the file's code is **sourced from the resorce project**, which is referenced in the External Resources section at the end of this README.
 
-### `board.rs` 🔲  
+### `board.rs`
 Manages the **board setup**, assigns **colors to tiles**, and **displays game results**.
 
 Some of the file's code is **sourced from the resorce project**, which is referenced in the External Resources section at the end of this README.
 
-### `algorithm.rs` 🧩  
+### `algorithm.rs` 
 Implements **movement logic** and **post-move board adjustments** to ensure proper tile behavior
 
 Some of the file's code is **sourced from the resorce project**, which is referenced in the External Resources section at the end of this README.
 
-###  `strategies/mod.rs` 🎨
+###  `strategies/mod.rs`
 This file serves as a module declaration, making two modules public for access in other files.
 
 The two modules are:
 -  `Strategy`: Contains the definitions and implementations related to game movement.
 -  `Expectimax`: contain logic for the Expectimax algorithm.
 
-### `strategies/strategy.rs` 🤖
+### `strategies/strategy.rs`
 This file implements the strategy for game movements, where the Expectimax search is applied to determine the best move based on the game state.
 
-### `strategies/expectimax.rs` 🧠
-This file implements the **Expectimax Search**. It is responsible for evaluating game states and selecting the optimal move to maximize the score.
+### `strategies/expectimax.rs`
+This file implements the **Expectimax Search**. It is responsible for evaluating game states, handling state repeatations, and selecting the optimal move to maximize the score.
 #### Key components:
 - Expectimax recursive search to simulate multiple future moves.
 - Probabilistic handling of tile spawns (90% chance for 2, 10% for 4), with expectation evaluation for each move.
 - Scoring functions using heuristics like snake shape sum, max tile to corner, empty tiles and more.
+- Cache implementation for repeating states (for further explanation, take a look on page 11 and 24 of our report)
 
 
 
-## External Resource 🤝
+## External Resource
 
 This project incorporates code from the following source: 
 
