@@ -62,10 +62,10 @@ impl <const N: usize> ThreeDGame<N> {
         let mut score = 0;
         let mut won = false;
         self.data.chunks_mut(N).for_each(|row| {
-            let (new_row, new_score) = match dir {
+            let (new_row, new_score, _) = match dir {
                 ThreeDDirection::Right => algorithm::slide_right(row),
                 ThreeDDirection::Left => algorithm::slide_left(row),
-                _ => (row.to_vec(), 0),
+                _ => (row.to_vec(), 0, false),
             };
             if new_score == 2048 {
                 won = true;
@@ -110,10 +110,10 @@ impl <const N: usize> ThreeDGame<N> {
                     .collect::<Vec<_>>();
     
                 // Slide and merge the depth slice
-                let (new_depth, new_score) = match dir {
+                let (new_depth, new_score, _) = match dir {
                     ThreeDDirection::Inward => algorithm::slide_left(&depth),
                     ThreeDDirection::Outward => algorithm::slide_right(&depth),
-                    _ => (depth.clone(), 0),
+                    _ => (depth.clone(), 0, false),
                 };
     
                 // Check for winning tile
