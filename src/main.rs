@@ -36,25 +36,19 @@ fn main() -> Result<(), std::io::Error>{
     display::display_game(&mut stdout, &board, &game)?.flush()?;
 
 
-    //Create files:
-    let csv_file = File::create("results.csv")?;
-
-    let txt_file = File::create("boards.txt")?;
-
+    //Create log files:
+    let csv_file = File::create("results.csv")?; // Here we save the results of the game
+    let txt_file = File::create("boards.txt")?; // Here we save the board at the final stage of the game
     let mut csv_writer = BufWriter::new(csv_file);
-
     let mut txt_writer = BufWriter::new(txt_file);
-
     // Write the CSV header
     writeln!(csv_writer, "Game Iterations,Max Tile,Score,2,4,8,16,32,64,128,256,512,1024,2048,4096,8192, 16384, 32768,65536,131072")?;
 
 
     for i in 0..GAMES_TO_RUN {
-        
         let mut strategy = ExpectimaxStrategy::<BOARD_DIMENSION>::new(DEPTH, 0.0, 0.0,0.0,0.0,0.0);
         let mut game: Game<BOARD_DIMENSION> = game::Game::new();
         let mut iterations = 0;
-
         let mut first_occurrence: HashMap<i32, usize> = HashMap::new();
 
         loop {
@@ -81,21 +75,17 @@ fn main() -> Result<(), std::io::Error>{
                     break;
                 }
             }
-            
             iterations += 1;
-
         }
 
         let (_, max_tile) = game.get_max_tile();
         let score = game.score();
 
-        //print game board:
-
+        //print game board to log file:
         writeln!(txt_writer, "Game #{}", i+1)?;
         writeln!(txt_writer, "")?;
         game.print_board(&mut txt_writer)?;
         
-
         // Save the result as a CSV row
         writeln!(csv_writer, "{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}",
           iterations,

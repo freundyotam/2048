@@ -10,22 +10,12 @@ evaluation functions, making intelligent moves and maximizing the final score.
 - **Flexible board sizes**, supporting **2x2, 3x3, 4x4, and 5x5** configurations  
 
 ## How to Run 
-1. Install Rust:
+1. Install Rust and Cargo:
 
-   Visit:
-   https://www.rust-lang.org/tools/install
+   For installation guide, check out:
+   https://doc.rust-lang.org/cargo/getting-started/installation.html
 
-   Or run this command:
-   ```sh
-   curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-
-2. Clone the repository:
-
-   ```sh
-   git clone https://github.com/freundyotam/2048.git
-   cd 2048
-
-3. Run the game:
+2. Run the game:
    ```sh
    cargo run
 
@@ -33,28 +23,25 @@ evaluation functions, making intelligent moves and maximizing the final score.
 ## Project Source Structure
 
 ### `main.rs` 
-This is the **main file** of the program, where everything starts. It sets up the **game board**, configures the **AI strategy**, and controls the **game loop**.  
+This is the **main file** of the program, where everything starts. It sets up the **game board**, configures the **Algorithm strategy**, and controls the **game loop**.
 
-In this file, developers can:  
+In this file, using the constant config vars developers can:  
 - **Set the board size** (e.g., 3x3, 4x4, or 5x5)  
-- **Adjust the AI’s search depth** to control how far ahead it plans moves  
+- **Adjust the Algorithm’s search depth** to control how far ahead it plans moves  
 - **Choose how many games to run**
 
 ### `game.rs`
-This file contains the **core game logic**, defining how the board works, which moves are allowed, and when the game ends.  
+This file the game module logic, defining what happens for each step the user decides to take, which moves are allowed, and when the game ends.  
 
-#### Key functionalities:  
-- **Handling player and AI moves** → Implements movement functions like `left`, `right`, `up`, and `down`.  
+#### This file contains the following:  
+- **Handling player moves** → Implements movement functions like `left`, `right`, `up`, and `down`.  
 - **Checking for game over** → Determines if no valid moves are left.  
 - **Spawning new tiles** → Randomly adds a `2` or `4` after each move.
-- **Handling heuristic-based scoring calculations**
+- **Handling heuristic-based scoring calculations** → Some heuristic needs specific values of the game that this module calculates for them
 
-Some of the file's code is **sourced from the resorce project**, which is referenced in the External Resources section at the end of this README.
 
 ### `display.rs` 
-Handles the **visual aspects** of the game.
-
-Some of the file's code is **sourced from the resorce project**, which is referenced in the External Resources section at the end of this README.
+Handles the **visual aspects** of the game and prints the board nicely to the stdout
 
 ### `board.rs`
 Manages the **board setup**, assigns **colors to tiles**, and **displays game results**.
