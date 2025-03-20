@@ -42,6 +42,8 @@ This file the game module logic, defining what happens for each step the user de
 ### `three_d_game.rs`
 This file is the same as `game.rs` but for the 3D board. 
 Implementing all the board functionality for the algirthm to run on a 3D board.
+To run the 3D algorithm just change the code in main to use `GameThreeD` and `ExpectimaxStrategyThreeD` modules instead of the current `Game` and `ExpectimaxStrategy`
+
 
 ### `display.rs` 
 Handles the **visual aspects** of the game and prints the board nicely to the stdout
