@@ -39,9 +39,15 @@ This file the game module logic, defining what happens for each step the user de
 - **Spawning new tiles** → Randomly adds a `2` or `4` after each move.
 - **Handling heuristic-based scoring calculations** → Some heuristic needs specific values of the game that this module calculates for them
 
+### `three_d_game.rs`
+This file is the same as `game.rs` but for the 3D board. 
+Implementing all the board functionality for the algirthm to run on a 3D board.
 
 ### `display.rs` 
 Handles the **visual aspects** of the game and prints the board nicely to the stdout
+
+### `expectimax_three_d.rs`
+The expectimax algorithm implementation for the 3D board
 
 ### `board.rs`
 Manages the **board setup**, assigns **colors to tiles**, and **displays game results**.
