@@ -46,3 +46,16 @@ pub fn transpose<const N: usize>(data: &mut [i32]) {
         }
     }
 }
+
+pub fn transpose_3d<const N: usize>(data: &mut [i32]) {
+    for i in 0..N {
+        for j in i..N {
+            for k in 0..N {
+                // Swap elements for transposing along the first two dimensions (i, j)
+                let index1 = i + N * (j + N * k);
+                let index2 = j + N * (i + N * k);
+                data.swap(index1, index2);
+            }
+        }
+    }
+}

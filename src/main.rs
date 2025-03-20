@@ -7,14 +7,17 @@ mod algorithm;
 mod board;
 mod display;
 mod game;
+mod three_d_game;
 mod strategies;
 use crate::strategies::expectimax::ExpectimaxStrategy;
+use crate::strategies::expectimax_three_d::ExpectimaxStrategyThreeD;
 use core::time;
 use std::io::{stdout, BufWriter, Write};
 use std::thread;
 use std::time::Duration;
 use game::{Direction, Game};
 use strategies::strategy::Strategy;
+use three_d_game::ThreeDDirection;
 use std::fs::{File, OpenOptions};
 use chrono::prelude::*;
 use rand::Rng; // 0.8.5
@@ -30,9 +33,7 @@ fn main() -> Result<(), std::io::Error>{
     let mut stdout = BufWriter::new(stdout_raw.lock());
     crossterm::terminal::enable_raw_mode()?;
     let board = board::Board::new();
-    
     let game: Game<BOARD_DIMENSION> = game::Game::new();
-    
     display::display_game(&mut stdout, &board, &game)?.flush()?;
 
 
