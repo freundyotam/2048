@@ -1,2 +1,2 @@
 pub mod strategy;
-pub mod expectimax; 
+pub mod expectimax;

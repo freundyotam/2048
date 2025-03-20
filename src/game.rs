@@ -1,7 +1,9 @@
-use super::algorithm;
 use strum_macros::EnumIter;
 use rand::prelude::*;
+use crate::algorithm;
 use rand::distributions::WeightedIndex;
+use std::fs::File;
+use std::io::{BufWriter, Result, Write};
 
 use rand::{
     prelude::{IteratorRandom, SliceRandom},
@@ -30,7 +32,7 @@ pub struct Game<const N: usize> {
     status: GameStatus,
     already_won: bool,
     score: i32,
-    data: Vec<i32>,
+    pub data: Vec<i32>,
     dimention: i32,
 }
 
@@ -86,27 +88,31 @@ impl <const N: usize> Game<N> {
         let mut score = 0;
         let mut won = false;
         self.data.chunks_mut(N).for_each(|row| {
-            let (new_row, new_score) = match dir {
+            let (new_row, new_score, is_moving) = match dir {
                 Direction::Right => algorithm::slide_right(row),
                 Direction::Left => algorithm::slide_left(row),
-                _ => (row.to_vec(), 0),
+                _ => (row.to_vec(), 0, false),
             };
             if new_score == 2048 {
                 won = true;
             }
             score += new_score;
+            
+            if is_moving == true {
+                mutated = true;
+            }
+
             for i in 0..N {
-                if row[i] != new_row[i] {
-                    row[i] = new_row[i];
-                    mutated = true;
-                }
+                row[i] = new_row[i];
             }
         });
+
         self.score += score;
         if won && !self.already_won {
             self.status = GameStatus::Won;
             self.already_won = true;
         }
+        
         mutated
     }
     fn vertical(&mut self, dir: Direction) -> bool {
@@ -196,5 +202,201 @@ impl <const N: usize> Game<N> {
                 [1, 2][dist.sample(&mut rng)]
             },
         );
+    }
+
+    pub fn get_tiles_snake_sum(&self) -> f64 {
+
+        let mut sum = 0.0;
+        if N == 4 {
+            sum = self.get_tiles_snake_sum_4x4();
+        }
+
+        if N == 2 {
+            sum = self.get_tiles_snake_sum_2x2();
+        }
+        
+        if N == 3 {
+            sum = self.get_tiles_snake_sum_3x3();
+        }
+
+        if N == 5 {
+            sum = self.get_tiles_snake_sum_5x5();
+        }
+
+        sum
+    }
+
+
+    pub fn get_tiles_snake_sum_2x2(&self) -> f64 {
+        let weight_matrix = [
+            [512.0, 128.0],       
+            [8.0, 32.0]            
+        ];
+    
+        let mut sum: f64 = 0.0;
+    
+        for i in 0..2 {
+            for j in 0..2 {
+                sum += self.get_tile(i, j) as f64 * weight_matrix[i][j];
+            }
+        }
+    
+        sum
+    }
+
+    pub fn get_tiles_snake_sum_3x3(&self) -> f64 {
+        let weight_matrix = [
+            [512.0, 1024.0, 2048.0], // Highest row
+            [256.0, 128.0, 64.0],       // Zigzag down
+            [8.0, 16.0, 32.0]            // Lowest row
+        ];
+    
+        let mut sum: f64 = 0.0;
+    
+        for i in 0..3 {
+            for j in 0..3 {
+                sum += self.get_tile(i, j) as f64 * weight_matrix[i][j];
+            }
+        }
+    
+        sum
+    }
+    
+
+
+    pub fn get_tiles_snake_sum_4x4(&self) -> f64 {
+        let weight_matrix = [
+            [65536.0, 32768.0, 16384.0, 8192.0],  // Highest priority row
+            [512.0, 1024.0, 2048.0, 4096.0],     // Zigzag down
+            [256.0, 128.0, 64.0, 32.0],          // Continue snake
+            [2.0, 4.0, 8.0, 16.0]                 // Lowest priority row
+        ];
+    
+        let mut sum: f64 = 0.0;
+    
+        for i in 0..4 {
+            for j in 0..4 {
+                sum += self.get_tile(i, j) as f64 * weight_matrix[i][j];
+            }
+        }
+    
+        sum
+    }
+
+
+
+    pub fn get_tiles_snake_sum_5x5(&self) -> f64 {
+        let weight_matrix = [
+            [1048576.0, 524288.0, 262144.0, 131072.0, 65536.0], // Highest priority row
+            [2048.0, 4096.0, 8192.0, 16384.0, 32768.0],         // Zigzag down
+            [1024.0, 512.0, 256.0, 128.0, 64.0],               // Continue snake
+            [2.0, 4.0, 8.0, 16.0, 32.0],                       // Keep priority decreasing
+            [1.0, 0.5, 0.25, 0.125, 0.025]                          // Lowest priority row
+        ];
+    
+        let mut sum: f64 = 0.0;
+    
+        for i in 0..5 {
+            for j in 0..5 {
+                sum += self.get_tile(i, j) as f64 * weight_matrix[i][j];
+            }
+        }
+    
+        sum
+    }
+
+    
+
+    pub fn get_smoothness(&self) -> f64 {
+        let mut smoothness: f64 = 0.0;
+    
+        for i in 0..N {
+            for j in 0..N {
+                let tile_value = self.get_tile(i, j) as f64;
+                if tile_value == 0.0 {
+                    continue; // Skip empty tiles
+                }
+    
+                // Check right neighbor
+                if j + 1 < N {
+                    let right_value = self.get_tile(i, j + 1) as f64;
+                    if right_value > 0.0 {
+                        smoothness -= (tile_value - right_value).abs();
+                    }
+                }
+    
+                // Check bottom neighbor
+                if i + 1 < N {
+                    let bottom_value = self.get_tile(i + 1, j) as f64;
+                    if bottom_value > 0.0 {
+                        smoothness -= (tile_value - bottom_value).abs();
+                    }
+                }
+            }
+        }
+    
+        smoothness // Negative, since lower absolute difference is better
+    }
+
+    pub fn get_merging_potential(&self) -> f64 {
+        let mut merges: f64 = 0.0;
+    
+        for i in 0..N {
+            for j in 0..N {
+                let tile_value = self.get_tile(i, j) as f64;
+                if tile_value == 0.0 {
+                    continue; // Skip empty tiles
+                }
+    
+                // Check right neighbor
+                if j + 1 < N && self.get_tile(i, j) == self.get_tile(i, j + 1) {
+                    merges += tile_value;
+                }
+    
+                // Check bottom neighbor
+                if i + 1 < N && self.get_tile(i, j) == self.get_tile(i + 1, j) {
+                    merges += tile_value;
+                }
+            }
+        }
+    
+        merges
+    }
+
+
+    pub fn get_monotonicaly(&self) -> f64 {
+        let mut value = 0.0;
+
+        for i in 0..(N*N - 1) {
+            let diff = (self.data[i] - self.data[i+1]).abs() as f64;
+            value -= diff;
+        }
+        value
+    }
+
+    pub fn get_tile(&self, row: usize, col: usize) -> i32 {
+        let index = N * row + col;
+        let value = self.data[index].clone() as u32;
+        if value == 0 {
+            return 0;
+        }
+        2i32.pow(value)
+    }
+
+    pub fn print_board(&self, txt_writer: &mut BufWriter<File>) -> Result<()> {
+        for i in 0..N {
+            for j in 0..N {
+                if self.data[i * N + j] == 0 {
+                    write!(txt_writer, "|{:4}|", 0)?;
+                }
+                else {
+                    write!(txt_writer, "|{:4}|", 2i32.pow(self.data[i * N + j] as u32))?;
+                }
+                
+            }
+            writeln!(txt_writer)?; // Newline after each row
+        }
+        writeln!(txt_writer)?; // Extra newline for separation
+        Ok(())
     }
 }
