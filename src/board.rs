@@ -6,14 +6,14 @@ use rand_xoshiro::Xoshiro256Plus;
 
 #[derive(Clone)]
 pub struct Board {
-    colour_theme: [i32; 17],
+    colour_theme: [i32; 19],
     rng: Xoshiro256Plus,
 }
 
 impl Board {
     pub fn new() -> Board {
         let colour_theme = [
-            0, 247, 78, 222, 220, 214, 208, 202, 196, 162, 160, 126, 90, 88, 54, 53, 52,
+            0, 247, 78, 222, 220, 214, 208, 202, 196, 162, 160, 126, 90, 88, 54, 53, 52, 40, 30
         ];
 
         Board {
@@ -60,7 +60,7 @@ impl Board {
     {
         let mut grey_scale = self.clone();
         grey_scale.colour_theme = [
-            0, 255, 251, 248, 246, 244, 242, 241, 240, 239, 238, 237, 236, 235, 234, 233, 232,
+            0, 255, 251, 248, 246, 244, 242, 241, 240, 239, 238, 237, 236, 235, 234, 233, 232, 231, 230
         ];
         grey_scale.print::<W, N>(data, out);
     }
@@ -70,7 +70,7 @@ impl Board {
     {
         let mut red_scale = self.clone();
         red_scale.colour_theme = [
-            0, 90, 126, 162, 198, 197, 161, 125, 89, 53, 17, 196, 160, 124, 88, 52, 16,
+            0, 90, 126, 162, 198, 197, 161, 125, 89, 53, 17, 196, 160, 124, 88, 52, 16, 12, 10
         ];
         red_scale.print::<W, N>(data, out);
     }
