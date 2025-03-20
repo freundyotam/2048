@@ -44,11 +44,11 @@ impl<const N: usize> ExpectimaxStrategy<N> {
     pub fn expectimax(&mut self, state: &Game<N>, depth: usize) -> (f64, Option<Direction>) {
 
         if depth == 0 {
-            return (self.main_utility(state), None);
+            return (self.merged_utilities(state), None);
         }
 
         if state.check_if_lost(){
-            return (self.main_utility(state) / (depth * 1000) as f64, None);
+            return (self.merged_utilities(state) / (depth * 1000) as f64, None);
         }
         
 
@@ -92,7 +92,7 @@ impl<const N: usize> ExpectimaxStrategy<N> {
     }
 
 
-    pub fn main_utility(&self, state: &Game<N>) -> f64 {
+    pub fn merged_utilities(&self, state: &Game<N>) -> f64 {
         let snake_sum = state.get_tiles_snake_sum();
         let empty_tiles = state.get_empty_tiles().len() as f64;
         let result = snake_sum + empty_tiles * 1000.0;
@@ -113,15 +113,11 @@ impl<const N: usize> ExpectimaxStrategy<N> {
         let (_, max_tile) = state.get_max_tile();
         max_tile.ilog(2) as f64
     }
-    pub fn utility_average(&self, state: &Game<N>) -> f64 {
-        // let tiles_sum = state.get_tiles_sum() as f64;
+    pub fn utility_divided_empty_tiles(&self, state: &Game<N>) -> f64 {
         let non_empty_tiles = (N*N - state.get_empty_tiles().len()) as f64;
         1.0 as f64 / (non_empty_tiles as f64 * non_empty_tiles as f64) as f64
     }
-    pub fn utility_empty_tiles(&self, state: &Game<N>) -> f64 {
-        let empty_tiles = state.get_empty_tiles().len() as f64;
-        return empty_tiles;
-    }
+    
     pub fn utility_num_empty_tiles(&self, state: &Game<N>) -> f64 {
         let empty_tiles = state.get_empty_tiles().len() as f64;
         empty_tiles
@@ -135,26 +131,10 @@ impl<const N: usize> ExpectimaxStrategy<N> {
         let non_empty_tiles = (N*N - state.get_empty_tiles().len()) as f64;
         max_tile as f64 / (non_empty_tiles * non_empty_tiles)
     }
-    pub fn utility(&self, state: &Game<N>) -> f64 {
-        let mut rng = rand::thread_rng(); // Create a new random number generator
-    
-        // let monotone = self.monotone_utility(state) / 16.0;
-        let corner_utility = self.center_utility(state);
-        // if monotone > 3.0 {
-        //     return self.corner_utility(state) * 10.0;
-        // } else {
-        //     self.corner_utility(state) * 10.0  + self.monotone_utility(state) + self.utility_num_empty_tiles(state)
-        // }
-        // if rng.gen_range(1..=5000) == 10{
-        //     self.log_to_file(format!("corner utility: {}, monotone utility: {}, max tile utility: {}, num empty tiles utility: {}, board: {:?}", corner_utility, monotone, self.utility_max_tile(state), self.utility_num_empty_tiles(state), state.data()).as_str());
-        // }
-        corner_utility
-    }
-
 
 
     pub fn gamma_utility(&self, state: &Game<N>) -> f64 {
-        return self.alpha * self.utility_max_tile(state) + self.beta * self.utility_empty_tiles(state) + self.gamma * self.center_utility(state) + self.delta * self.snake_utility(state) + self.lambda * self.corner_utility(state); // TODO this should be - 
+        return self.alpha * self.utility_max_tile(state) + self.beta * self.utility_divided_empty_tiles(state) + self.gamma * self.center_utility(state) + self.delta * self.utility_snake_shape(state) + self.lambda * self.corner_utility(state); // TODO this should be - 
     }
 
     pub fn corner_utility(&self, state: &Game<N>) -> f64 {
@@ -203,50 +183,6 @@ impl<const N: usize> ExpectimaxStrategy<N> {
         score
     }
 
-    pub fn snake_utility(&self, state: &Game<N>) -> f64 {
-        let mut score = 0.0;
-        let mut snake_order = Vec::new();
-    
-        // Generate snake-like order
-        for row in 0..N {
-            if row % 2 == 0 {
-                // Left to right
-                for col in 0..N {
-                    snake_order.push((row, col));
-                }
-            } else {
-                // Right to left
-                for col in (0..N).rev() {
-                    snake_order.push((row, col));
-                }
-            }
-        }
-    
-        // Iterate through snake order and compute score
-        for i in 0..(snake_order.len() - 1) {
-            let (row1, col1) = snake_order[i];
-            let (row2, col2) = snake_order[i + 1];
-            let index1 = row1 * N + col1;
-            let index2 = row2 * N + col2;
-    
-            if state.data()[index1] + 1 == state.data()[index2] {
-                score += state.data()[index1] as f64;
-            }
-        }
-    
-        score
-    }
-
-
-    pub fn snake_utility2(&self, state: &Game<N>) -> f64 {
-        let mut score = 0.0;
-        for i in 0..N*N{
-            score += state.data()[i] as f64 * (i + 1) as f64;
-        }
-        score
-    }
-
-
 
     pub fn is_next_to_each_other((x1, y1): (i32, i32), (x2, y2): (i32,i32), state: &Game<N>) -> i32 {
         if x1 < 0 || x1 >= N as i32 || y1 < 0 || y1 >= N as i32 || x2 < 0 || x2 >= N as i32 || y2 < 0 || y2 >= N as i32 {
@@ -259,6 +195,9 @@ impl<const N: usize> ExpectimaxStrategy<N> {
             }
         }
     }
+
+
+
     pub fn log_to_file(&self, line: &str) {
         let mut file = OpenOptions::new()
         .write(true)

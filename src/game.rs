@@ -386,7 +386,13 @@ impl <const N: usize> Game<N> {
     pub fn print_board(&self, txt_writer: &mut BufWriter<File>) -> Result<()> {
         for i in 0..N {
             for j in 0..N {
-                write!(txt_writer, "|{:4}|", self.data[i * N + j])?;
+                if self.data[i * N + j] == 0 {
+                    write!(txt_writer, "|{:4}|", 0)?;
+                }
+                else {
+                    write!(txt_writer, "|{:4}|", 2i32.pow(self.data[i * N + j] as u32))?;
+                }
+                
             }
             writeln!(txt_writer)?; // Newline after each row
         }

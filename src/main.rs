@@ -19,30 +19,40 @@ use std::fs::{File, OpenOptions};
 use chrono::prelude::*;
 use rand::Rng; // 0.8.5
 
+
+const BOARD_DIMENSION: usize = 4;
+const DEPTH: usize = 2;
+const GAMES_TO_RUN: usize = 1;
+
+
 fn main() -> Result<(), std::io::Error>{
     let stdout_raw = stdout();
     let mut stdout = BufWriter::new(stdout_raw.lock());
     crossterm::terminal::enable_raw_mode()?;
     let board = board::Board::new();
-    const BOARD_DIMISION: usize = 5;
-    let game: Game<BOARD_DIMISION> = game::Game::new();
-    let depth = 2;
+    
+    let game: Game<BOARD_DIMENSION> = game::Game::new();
+    
     display::display_game(&mut stdout, &board, &game)?.flush()?;
 
 
-    //Create file:
-    let file = File::create("results_5x5.csv")?;
+    //Create files:
+    let csv_file = File::create("results.csv")?;
 
-    let mut csv_writer = BufWriter::new(file);
+    let txt_file = File::create("boards.txt")?;
+
+    let mut csv_writer = BufWriter::new(csv_file);
+
+    let mut txt_writer = BufWriter::new(txt_file);
 
     // Write the CSV header
     writeln!(csv_writer, "Game Iterations,Max Tile,Score,2,4,8,16,32,64,128,256,512,1024,2048,4096,8192, 16384, 32768,65536,131072")?;
 
 
-    for _i in 0..100 {
+    for i in 0..GAMES_TO_RUN {
         
-        let mut strategy = ExpectimaxStrategy::<BOARD_DIMISION>::new(depth, 0.0, 0.0,0.0,0.0,0.0);
-        let mut game: Game<BOARD_DIMISION> = game::Game::new();
+        let mut strategy = ExpectimaxStrategy::<BOARD_DIMENSION>::new(DEPTH, 0.0, 0.0,0.0,0.0,0.0);
+        let mut game: Game<BOARD_DIMENSION> = game::Game::new();
         let mut iterations = 0;
 
         let mut first_occurrence: HashMap<i32, usize> = HashMap::new();
@@ -78,6 +88,13 @@ fn main() -> Result<(), std::io::Error>{
 
         let (_, max_tile) = game.get_max_tile();
         let score = game.score();
+
+        //print game board:
+
+        writeln!(txt_writer, "Game #{}", i+1)?;
+        writeln!(txt_writer, "")?;
+        game.print_board(&mut txt_writer)?;
+        
 
         // Save the result as a CSV row
         writeln!(csv_writer, "{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}",
